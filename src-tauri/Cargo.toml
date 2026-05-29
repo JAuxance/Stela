@@ -2,7 +2,8 @@
 name = "stela"
 version = "0.1.0"
 description = "Stela — glassy Markdown notes with FR/EN spellcheck and Google Drive sync"
-authors = ["Stela"]
+authors = ["Auxance Jourdan"]
+license = "MIT"
 edition = "2021"
 rust-version = "1.80"
 

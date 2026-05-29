@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "description": "Stela — glassy Markdown note-taking app with FR/EN spellcheck and Google Drive sync",
+  "author": "Auxance Jourdan",
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

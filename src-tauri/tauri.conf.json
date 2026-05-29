@@ -32,9 +32,11 @@
   "bundle": {
     "active": true,
     "targets": ["nsis"],
+    "publisher": "Auxance Jourdan",
+    "copyright": "© 2026 Auxance Jourdan — MIT License",
     "category": "Productivity",
     "shortDescription": "Glassy Markdown notes synced to Google Drive.",
-    "longDescription": "Stela is a minimalist, glassy Markdown note-taking app with smooth caret animation, bilingual FR/EN spell checking, and Google Drive as the source of truth.",
+    "longDescription": "Stela is a minimalist, glassy Markdown note-taking app with smooth caret animation, bilingual FR/EN spell checking, LaTeX, voice notes and video, with Google Drive as the source of truth.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -44,7 +46,9 @@
     ],
     "windows": {
       "nsis": {
-        "installMode": "currentUser"
+        "installMode": "currentUser",
+        "displayLanguageSelector": true,
+        "languages": ["English", "French"]
       },
       "webviewInstallMode": {
         "type": "downloadBootstrapper"
