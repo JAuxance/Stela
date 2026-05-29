@@ -83,6 +83,15 @@ function demoteNode(node: JSONNode): JSONNode {
     p.set("name", String(a.name ?? "Note vocale"));
     return mediaParagraph(`Note vocale : ${a.name ?? "Note vocale"}`, "/audio", p);
   }
+  if (node.type === "imageNode") {
+    const a = node.attrs ?? {};
+    const p = new URLSearchParams();
+    if (a.fileId) p.set("fileId", String(a.fileId));
+    else if (a.src) p.set("src", String(a.src));
+    if (a.mime) p.set("mime", String(a.mime));
+    p.set("alt", String(a.alt ?? "Image"));
+    return mediaParagraph(`Image : ${a.alt ?? ""}`, "/image", p);
+  }
   if (node.content) return { ...node, content: node.content.map(demoteNode) };
   return node;
 }
@@ -140,6 +149,17 @@ function reviveNode(node: JSONNode): JSONNode {
             src: "",
             name: p.get("name") ?? "Note vocale",
             mime: p.get("mime") ?? "audio/webm",
+          },
+        };
+      }
+      if (url.pathname === "/image") {
+        return {
+          type: "imageNode",
+          attrs: {
+            src: p.get("src") ?? "",
+            fileId: p.get("fileId"),
+            alt: p.get("alt") ?? "",
+            mime: p.get("mime") ?? "image/png",
           },
         };
       }

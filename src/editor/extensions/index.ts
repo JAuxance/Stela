@@ -7,6 +7,7 @@ import { Spellcheck, type SpellContextInfo } from "./spellcheck";
 import { MathInline, MathBlock } from "./math";
 import { VideoEmbed } from "./video";
 import { AudioNote } from "./audio";
+import { ImageNode } from "./image";
 import type { Lang } from "../../lib/language";
 
 export interface BuildOptions {
@@ -28,6 +29,7 @@ export function buildExtensions(options: BuildOptions) {
     MathBlock,
     VideoEmbed,
     AudioNote,
+    ImageNode,
     markdownExtension(),
     SmoothCaret,
     TypingInk,

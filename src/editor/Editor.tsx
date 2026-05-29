@@ -8,8 +8,10 @@ import { SuggestionMenu } from "../components/SuggestionMenu";
 import { Toolbar } from "../components/Toolbar";
 import { VideoDialog } from "../components/VideoDialog";
 import { AudioRecorder } from "../components/AudioRecorder";
+import { ImageDialog } from "../components/ImageDialog";
 import { insertVideo } from "./extensions/video";
 import { insertAudio } from "./extensions/audio";
+import { insertImage } from "./extensions/image";
 import { addWord, suggest } from "../spellcheck/proofreader";
 import { resolvedLang } from "../lib/language";
 
@@ -40,6 +42,7 @@ export function Editor({
   const [menu, setMenu] = useState<MenuState | null>(null);
   const [videoOpen, setVideoOpen] = useState(false);
   const [recOpen, setRecOpen] = useState(false);
+  const [imageOpen, setImageOpen] = useState(false);
   const lang = resolvedLang();
 
   const handleContextMenu = useCallback((info: SpellContextInfo) => {
@@ -104,6 +107,7 @@ export function Editor({
     <div className="editor-shell">
       <Toolbar
         editor={editor}
+        onInsertImage={() => setImageOpen(true)}
         onInsertVideo={() => setVideoOpen(true)}
         onRecordAudio={canUpload ? () => setRecOpen(true) : undefined}
       />
@@ -122,6 +126,13 @@ export function Editor({
       )}
       {recOpen && editor && (
         <AudioRecorder onInsert={(attrs) => insertAudio(editor, attrs)} onClose={() => setRecOpen(false)} />
+      )}
+      {imageOpen && editor && (
+        <ImageDialog
+          canUpload={canUpload}
+          onInsert={(attrs) => insertImage(editor, attrs)}
+          onClose={() => setImageOpen(false)}
+        />
       )}
 
       {menu && (

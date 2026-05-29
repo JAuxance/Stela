@@ -4,6 +4,7 @@ import { insertMathInline, insertMathBlock } from "../editor/extensions/math";
 
 export interface ToolbarProps {
   editor: Editor | null;
+  onInsertImage?: () => void;
   onInsertVideo?: () => void;
   onRecordAudio?: () => void;
 }
@@ -60,6 +61,13 @@ const IconFilm = svg(
     <path d="M6.7 6.4 L10.4 8 L6.7 9.6 Z" fill="currentColor" stroke="none" />
   </>,
 );
+const IconImage = svg(
+  <>
+    <rect x="2" y="3" width="12" height="10" rx="2" />
+    <circle cx="5.5" cy="6.5" r="1.1" fill="currentColor" stroke="none" />
+    <path d="M3 12 L6.5 8.5 L9 11 L11 9 L13 11" />
+  </>,
+);
 const IconUndo = svg(
   <>
     <path d="M6 4.5 L3 7.5 L6 10.5" />
@@ -73,7 +81,7 @@ const IconRedo = svg(
   </>,
 );
 
-export function Toolbar({ editor, onInsertVideo, onRecordAudio }: ToolbarProps) {
+export function Toolbar({ editor, onInsertImage, onInsertVideo, onRecordAudio }: ToolbarProps) {
   if (!editor) return null;
 
   const Btn = ({
@@ -150,7 +158,12 @@ export function Toolbar({ editor, onInsertVideo, onRecordAudio }: ToolbarProps) 
         <span style={{ fontStyle: "italic" }}>Σ</span>
         <span style={{ fontSize: 10, opacity: 0.7 }}>=</span>
       </Btn>
-      {(onRecordAudio || onInsertVideo) && <span className="tb-sep" />}
+      {(onInsertImage || onRecordAudio || onInsertVideo) && <span className="tb-sep" />}
+      {onInsertImage && (
+        <Btn run={onInsertImage} title="Insérer une image">
+          {IconImage}
+        </Btn>
+      )}
       {onRecordAudio && (
         <Btn run={onRecordAudio} title="Note vocale">
           {IconMic}

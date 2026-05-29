@@ -819,6 +819,13 @@ textarea.math-input {
   background: #000;
 }
 
+.media-img {
+  max-width: 100%;
+  border-radius: 10px;
+  display: block;
+  margin: 0 auto;
+}
+
 .media-loading {
   padding: 24px;
   text-align: center;
