@@ -27,10 +27,6 @@ export interface EditorProps {
   onEditorReady?: (editor: TiptapEditor) => void;
   /** Whether media (audio/video files) can be uploaded to Drive (i.e. connected). */
   canUpload: boolean;
-  showTitle: boolean;
-  title: string;
-  onTitleChange: (value: string) => void;
-  onTitleCommit: () => void;
 }
 
 export function Editor({
@@ -40,10 +36,6 @@ export function Editor({
   onChange,
   onEditorReady,
   canUpload,
-  showTitle,
-  title,
-  onTitleChange,
-  onTitleCommit,
 }: EditorProps) {
   const [menu, setMenu] = useState<MenuState | null>(null);
   const [videoOpen, setVideoOpen] = useState(false);
@@ -117,21 +109,6 @@ export function Editor({
       />
       <div className="editor-scroll">
         <div className="editor-column">
-          {showTitle && (
-            <input
-              className="note-title"
-              value={title}
-              placeholder="Sans titre"
-              onChange={(e) => onTitleChange(e.target.value)}
-              onBlur={onTitleCommit}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  (e.target as HTMLInputElement).blur();
-                }
-              }}
-            />
-          )}
           <EditorContent editor={editor} />
         </div>
       </div>

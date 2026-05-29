@@ -3,6 +3,7 @@ import { Titlebar } from "./components/Titlebar";
 import { Sidebar } from "./components/Sidebar";
 import { StatusBar } from "./components/StatusBar";
 import { Settings } from "./components/Settings";
+import { Tabs } from "./components/Tabs";
 import { Editor } from "./editor/Editor";
 import { useDriveSync } from "./drive/syncEngine";
 import { resolvedLang, LANG_CHANGED_EVENT } from "./lib/language";
@@ -14,9 +15,9 @@ function countWords(md: string): number {
 export function App() {
   const sync = useDriveSync();
   const [words, setWords] = useState(0);
-  const [title, setTitle] = useState(sync.activeName);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [lang, setLang] = useState(resolvedLang());
+  const [openIds, setOpenIds] = useState<string[]>([]);
 
   useEffect(() => {
     const onLang = () => setLang(resolvedLang());
@@ -24,11 +25,31 @@ export function App() {
     return () => window.removeEventListener(LANG_CHANGED_EVENT, onLang);
   }, []);
 
-  // Reset the title field whenever a different note loads.
+  // Keep the active note in the open-tabs list.
   useEffect(() => {
-    setTitle(sync.activeName.replace(/\.md$/i, ""));
+    const id = sync.activeId;
+    if (id) setOpenIds((ids) => (ids.includes(id) ? ids : [...ids, id]));
+  }, [sync.activeId]);
+
+  const tabs = openIds
+    .map((id) => {
+      const n = sync.notes.find((x) => x.id === id);
+      return n ? { id, name: n.name } : null;
+    })
+    .filter((t): t is { id: string; name: string } => t !== null);
+
+  const closeTab = (id: string) => {
+    const next = openIds.filter((x) => x !== id);
+    setOpenIds(next);
+    if (sync.activeId === id) {
+      if (next.length > 0) void sync.selectNote(next[next.length - 1]);
+      else if (sync.notes[0]) void sync.selectNote(sync.notes[0].id);
+    }
+  };
+
+  useEffect(() => {
     setWords(countWords(sync.initialMarkdown));
-  }, [sync.noteKey, sync.activeName, sync.initialMarkdown]);
+  }, [sync.noteKey, sync.initialMarkdown]);
 
   const handleChange = useCallback(
     (markdown: string) => {
@@ -38,11 +59,6 @@ export function App() {
     [sync],
   );
 
-  const commitTitle = () => {
-    if (sync.connected && sync.activeId) void sync.renameActive(title);
-  };
-
-  const showTitle = sync.connected && !!sync.activeId;
   const noteName = sync.connected && sync.activeId ? sync.activeName.replace(/\.md$/i, "") : undefined;
 
   return (
@@ -59,6 +75,7 @@ export function App() {
           onNew={() => void sync.newNote()}
           onDelete={(id) => {
             if (window.confirm("Supprimer définitivement cette note de Google Drive ?")) {
+              setOpenIds((ids) => ids.filter((x) => x !== id));
               void sync.removeNote(id);
             }
           }}
@@ -68,6 +85,16 @@ export function App() {
         />
 
         <main className="main">
+          {sync.connected && tabs.length > 0 && (
+            <Tabs
+              tabs={tabs}
+              activeId={sync.activeId}
+              onSelect={(id) => void sync.selectNote(id)}
+              onClose={closeTab}
+              onNew={() => void sync.newNote()}
+            />
+          )}
+
           {!sync.hasCreds && (
             <Banner tone="info">
               Google Drive n'est pas configuré (fichier <code>.env</code>). Tu peux écrire un
@@ -112,10 +139,6 @@ export function App() {
             editable={sync.editable}
             onChange={handleChange}
             canUpload={sync.connected}
-            showTitle={showTitle}
-            title={title}
-            onTitleChange={setTitle}
-            onTitleCommit={commitTitle}
           />
         </main>
       </div>

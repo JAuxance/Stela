@@ -662,6 +662,94 @@ body {
   margin: 0 5px;
 }
 
+/* ---- Tabs (browser-style) -------------------------------------------------- */
+.tabs {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.tabs__strip {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  flex: 1;
+  scrollbar-width: thin;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  max-width: 200px;
+  padding: 4px 4px 4px 11px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  color: var(--text-soft);
+  flex: 0 0 auto;
+}
+
+.tab--active {
+  background: var(--active);
+  border-color: var(--line);
+  color: var(--text);
+}
+
+.tab__label {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 12.5px;
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tab__close {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 0;
+  background: transparent;
+  color: var(--text-faint);
+  border-radius: 5px;
+  cursor: pointer;
+  opacity: 0.55;
+}
+
+.tab:hover .tab__close {
+  opacity: 1;
+}
+
+.tab__close:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.tab__new {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  color: var(--text-soft);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.tab__new:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
 /* ---- Math (KaTeX) ---------------------------------------------------------- */
 .math-node {
   cursor: pointer;

@@ -9,6 +9,12 @@ const POLL_INTERVAL_MS = 15_000;
 const SAVE_DEBOUNCE_MS = 1500;
 const DRAFT_TEMPLATE = "# Nouvelle note\n\n";
 
+/** The note title is its first H1; the Drive filename follows it. */
+function titleFromMarkdown(md: string): string {
+  const m = md.match(/^#\s+(.+?)\s*$/m);
+  return m ? m[1].trim().replace(/[\\/]/g, "-").slice(0, 120) : "";
+}
+
 export interface DriveSync {
   status: SyncStatus;
   connected: boolean;
@@ -107,6 +113,22 @@ export function useDriveSync(): DriveSync {
         ),
       );
       setStatus("saved");
+
+      // Keep the Drive filename in sync with the note's first H1 (the title).
+      const title = titleFromMarkdown(content);
+      const current = notesRef.current.find((n) => n.id === id)?.name;
+      if (title && `${title}.md` !== current) {
+        try {
+          const renamed = await drive.renameNote(id, `${title}.md`);
+          const newName = renamed.name ?? `${title}.md`;
+          setNotes((ns) =>
+            ns.map((n) => (n.id === id ? { ...n, name: newName, modifiedTime: renamed.modifiedTime } : n)),
+          );
+          if (activeIdRef.current === id) setActiveName(newName);
+        } catch {
+          /* keep the previous name on failure */
+        }
+      }
     } catch (err) {
       setStatus(isConflict(err) ? "conflict" : "error");
     }
