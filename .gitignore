@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+dist-ssr/
+*.local
+
+# Rust / Tauri
+src-tauri/target/
+src-tauri/gen/
+
+# Generated Hunspell dictionaries (created at install by scripts/copy-dicts.mjs)
+public/dictionaries/**/*.aff
+public/dictionaries/**/*.dic
+
+# Generated app icon source
+app-icon.png
+
+# Secrets & local config
+.env
+.env.*.local
+
+# Editor / OS
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+*.log

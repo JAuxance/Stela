@@ -1,0 +1,48 @@
+[package]
+name = "stela"
+version = "0.1.0"
+description = "Stela — glassy Markdown notes with FR/EN spellcheck and Google Drive sync"
+authors = ["Stela"]
+edition = "2021"
+rust-version = "1.80"
+
+[lib]
+# The library name the desktop/mobile entrypoints call into.
+name = "stela_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-store = "2"
+tauri-plugin-oauth = "2"
+
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
+
+# HTTPS client for the token endpoint + Drive REST v3 (rustls so it builds on Linux/WSL too).
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+
+# OS keychain for the long-lived refresh token (Windows Credential Manager on the target).
+keyring = { version = "3", features = ["apple-native", "windows-native", "linux-native"] }
+
+# PKCE (S256) + state generation, hand-rolled to avoid a heavy OAuth dependency.
+sha2 = "0.10"
+base64 = "0.22"
+rand = "0.8"
+url = "2"
+
+# Open the system browser for the consent screen.
+open = "5"
+
+thiserror = "2"
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

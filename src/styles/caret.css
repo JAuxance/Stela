@@ -1,0 +1,45 @@
+/* Smooth animated caret — see src/editor/extensions/smoothCaret.ts.
+   The native caret is hidden; an overlay div glides between positions. */
+
+.ProseMirror {
+  position: relative;
+  caret-color: transparent;
+}
+
+.stela-caret {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 1.2em;
+  background: var(--caret-color);
+  border-radius: 1.5px;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 5;
+  will-change: transform, height;
+  transition:
+    transform 95ms cubic-bezier(0.22, 1, 0.36, 1),
+    height 95ms ease;
+}
+
+.stela-caret.is-blinking {
+  animation: stela-blink 1.15s steps(1, end) infinite;
+}
+
+@keyframes stela-blink {
+  0%,
+  52% {
+    opacity: 1;
+  }
+  53%,
+  100% {
+    opacity: 0.16;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stela-caret {
+    transition: none;
+  }
+}

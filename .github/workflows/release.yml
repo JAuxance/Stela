@@ -1,0 +1,63 @@
+name: Release (Windows .exe)
+
+# Build the downloadable Windows installer natively on a Windows runner.
+# Tauri cannot reliably cross-compile a Windows build from Linux/WSL, so this is
+# the canonical path. Tag a version (e.g. `git tag v0.1.0 && git push --tags`)
+# or run the workflow manually to produce a draft GitHub Release with the .exe.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "src-tauri -> target"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate app icons
+        run: |
+          node scripts/gen-icon.mjs
+          pnpm tauri icon app-icon.png
+
+      - name: Build and publish installer
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Inject the Google OAuth client so the released .exe can talk to Drive.
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+          VITE_GOOGLE_CLIENT_SECRET: ${{ secrets.VITE_GOOGLE_CLIENT_SECRET }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "Stela ${{ github.ref_name }}"
+          releaseBody: "Installeur Windows (NSIS .exe). Télécharge `Stela_x.y.z_x64-setup.exe`."
+          releaseDraft: true
+          prerelease: false
