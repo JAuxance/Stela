@@ -2,167 +2,172 @@
 
 # Stela
 
-**Prise de notes Markdown, minimaliste et *glassy*, synchronisée à Google Drive.**
+**Minimalist, glassy Markdown note-taking — synced to Google Drive.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
 ![Platform](https://img.shields.io/badge/platform-Windows-black)
 ![Tauri](https://img.shields.io/badge/Tauri-v2-black)
 ![React](https://img.shields.io/badge/React-19-black)
 ![Rust](https://img.shields.io/badge/Rust-stable-black)
+![Built with AI](https://img.shields.io/badge/built%20with-AI-black)
 
 </div>
 
 ---
 
-Stela est une app de bureau **noir & blanc, verre dépoli (iOS)**, pensée pour écrire
-vite et joliment :
+Stela is a **black & white, iOS-style frosted-glass** desktop app, built for writing
+fast and beautifully:
 
-- ✍️ **Éditeur WYSIWYG inline** (TipTap / ProseMirror) — le Markdown se transforme en
-  direct (titres, gras, listes, tâches `[ ]`, code, citations) et le fichier reste un
-  `.md` propre.
-- 🌊 **Curseur animé fluide** + **fondu d'écriture** (les lettres apparaissent en douceur).
-- 🔤 **Correction orthographique FR / EN** 100 % locale (nspell + Hunspell), détection
-  de langue par paragraphe, clic droit → suggestions / ignorer / ajouter au dictionnaire.
-- 🧮 **LaTeX** — formules en ligne `$…$` et bloc `$$…$$` (rendu KaTeX, édition au clic).
-- 🎙️ **Notes vocales** — enregistrement micro, **waveform**, lecteur ; audio stocké sur Drive.
-- 🎬 **Vidéo** — embed YouTube / Vimeo / URL, ou upload d'un fichier local sur Drive.
-- ☁️ **Google Drive = source de vérité** — `.md` créés/lus dans un dossier configurable,
-  écriture *debouncée* + détection des changements distants + gestion des conflits.
-- 🌗 **Thème clair/sombre** suivant le système, **Réglages** style iOS.
-- ↩️ Undo/Redo, suppression des notes et des blocs média.
+- ✍️ **Inline WYSIWYG editor** (TipTap / ProseMirror) — Markdown transforms live as you
+  type (headings, bold, lists, tasks `[ ]`, code, quotes) and the file stays clean `.md`.
+- 🌊 **Smooth animated caret** + **ink fade-in** (characters appear softly as you type).
+- 🔤 **Bilingual FR / EN spell checking**, fully local (nspell + Hunspell), per-paragraph
+  language detection, right-click → suggestions / ignore / add to dictionary.
+- 🧮 **LaTeX** — inline `$…$` and block `$$…$$` math (KaTeX rendering, click to edit).
+- 🎙️ **Voice notes** — microphone recording, **waveform**, player; audio stored on Drive.
+- 🎬 **Video** — YouTube / Vimeo / URL embeds, or upload a local file to Drive.
+- ☁️ **Google Drive as the source of truth** — `.md` files created/read in a configurable
+  folder, debounced write-through, remote-change detection, and conflict handling.
+- 🌗 **Light/dark theme** following the OS, **iOS-style Settings** panel.
+- ↩️ Undo/redo, deletion of notes and media blocks.
 
-> **Plateforme :** Windows (installeur `.exe`). Linux/macOS hors périmètre.
-
----
-
-## 📦 Installation (utilisateur final)
-
-1. Va dans l'onglet **Releases** du dépôt et télécharge `Stela_x.y.z_x64-setup.exe`.
-2. Lance-le (installation **par utilisateur**, sans droits admin).
-3. Ouvre Stela → **« Connecter Google Drive »** → connecte-toi avec ton compte Google.
-
-> **Aucune manipulation Google Cloud n'est nécessaire pour les utilisateurs.** Les
-> identifiants OAuth sont **embarqués dans l'app** par le développeur (voir plus bas).
-> Si l'installeur n'est pas signé, Windows SmartScreen affiche un avertissement
-> « éditeur inconnu » → *Informations complémentaires → Exécuter quand même*.
+> **Platform:** Windows (`.exe` installer). Linux/macOS are out of scope.
 
 ---
 
-## 🔐 Connexion Google : qui fait quoi ?
+## 📦 Installation (end users)
 
-C'est la question clé. **Deux rôles distincts :**
+1. Open the repository's **Releases** tab and download `Stela_x.y.z_x64-setup.exe`.
+2. Run it (per-user install, no admin rights required).
+3. Open Stela → **"Connect Google Drive"** → sign in with your Google account.
 
-| | Développeur (toi) — **une seule fois** | Utilisateur final — **à chaque appareil** |
+> **End users never touch Google Cloud.** The OAuth credentials are **baked into the app**
+> by the developer (see below). If the installer is unsigned, Windows SmartScreen shows an
+> "unknown publisher" warning → *More info → Run anyway*.
+
+---
+
+## 🔐 Google sign-in: who does what?
+
+This is the key point. **Two distinct roles:**
+
+| | Developer (you) — **once** | End user — **per device** |
 |---|---|---|
-| Action | Crée 1 client OAuth, le publie, le met dans la build | Clique « Connecter », se connecte à Google |
-| Google Cloud | Oui (une fois) | **Jamais** |
+| Action | Create 1 OAuth client, publish it, bake it into the build | Click "Connect", sign in to Google |
+| Google Cloud | Yes (once) | **Never** |
 
-L'app lit `VITE_GOOGLE_CLIENT_ID` / `VITE_GOOGLE_CLIENT_SECRET` **au build**. En CI, ils
-viennent des **secrets GitHub** → le `.exe` distribué contient déjà le client. Le
-`client_secret` d'une app de bureau n'est pas un vrai secret : c'est **PKCE (S256)** qui
-sécurise l'échange.
+The app reads `VITE_GOOGLE_CLIENT_ID` / `VITE_GOOGLE_CLIENT_SECRET` **at build time**. In CI
+they come from **GitHub secrets** → the distributed `.exe` already contains the client. A
+desktop app's `client_secret` isn't truly secret: **PKCE (S256)** secures the exchange.
 
-### Côté développeur — rendre la connexion fluide (recommandé)
+### Developer — make sign-in seamless (recommended)
 
-Pour que tes utilisateurs aient un **« Se connecter avec Google » propre** (sans écran
-« app non vérifiée », sans plafond de 100 testeurs, et avec des jetons longue durée) :
+So your users get a **clean "Sign in with Google"** (no "unverified app" screen, no 100-user
+cap, and long-lived tokens):
 
-1. **Google Cloud Console** → active **Google Drive API**.
-2. **OAuth consent screen** : type *External*, renseigne nom + logo + e-mail de support
-   + **lien vers une politique de confidentialité** (obligatoire pour publier).
-3. **Scope** : uniquement `…/auth/drive.file` (non sensible → **pas d'audit de sécurité
-   CASA**).
-4. **Credentials** → **OAuth client ID** → **Desktop app** → récupère id + secret.
-5. **Publishing status → PUBLISH APP** (passe en *In production*). Complète la
-   **vérification de marque** (logo/domaine) pour retirer l'écran d'avertissement.
-6. Mets l'id + le secret dans les **secrets GitHub** `VITE_GOOGLE_CLIENT_ID` /
-   `VITE_GOOGLE_CLIENT_SECRET` (la CI les injecte dans le build).
+1. **Google Cloud Console** → enable the **Google Drive API**.
+2. **OAuth consent screen**: type *External*; set app name + logo + support email +
+   **a privacy policy URL** (required to publish — see [`docs/privacy.html`](docs/privacy.html)).
+3. **Scope**: only `…/auth/drive.file` (non-sensitive → **no CASA security assessment**).
+4. **Credentials** → **OAuth client ID** → **Desktop app** → copy the id + secret.
+5. **Publishing status → PUBLISH APP** (move to *In production*). Complete **brand
+   verification** (logo/domain) to remove the warning screen.
+6. Put the id + secret into the **GitHub secrets** `VITE_GOOGLE_CLIENT_ID` /
+   `VITE_GOOGLE_CLIENT_SECRET` (CI injects them into the build).
 
-> Tant que l'app est en *Testing*, seuls des comptes ajoutés en *test users* peuvent se
-> connecter, et le refresh token **expire en 7 jours**. La publication lève ces limites.
+> While the app is in *Testing*, only accounts added as *test users* can sign in, and the
+> refresh token **expires after 7 days**. Publishing removes these limits.
 
 ---
 
-## 🛠️ Développement
+## 🛠️ Development
 
-**Prérequis :** Node 22+, pnpm 11+, Rust stable. Dév possible sous **WSL2**.
+**Requirements:** Node 22+, pnpm 11+, Rust stable. Development works under **WSL2**.
 
 ```bash
-pnpm install                 # installe + copie les dictionnaires Hunspell
-cp .env.example .env         # renseigne VITE_GOOGLE_CLIENT_ID / _SECRET (ton client)
-node scripts/env-from-google-json.mjs <client_secret.json>   # (raccourci depuis le JSON Google)
-pnpm tauri dev               # lance l'app
+pnpm install                 # installs deps + copies the Hunspell dictionaries
+cp .env.example .env         # set VITE_GOOGLE_CLIENT_ID / _SECRET (your client)
+node scripts/env-from-google-json.mjs <client_secret.json>   # (shortcut from the Google JSON)
+pnpm tauri dev               # run the app
 ```
 
-> Sans `.env`, l'app reste utilisable en **brouillon local** (sans sauvegarde) — pratique
-> pour tester l'éditeur, le correcteur et les animations.
+> Without `.env`, the app still works as a **local draft** (no saving) — handy for testing
+> the editor, spell checker and animations.
 >
-> ⚠️ Sous WSL, `tauri dev` utilise le moteur **WebKitGTK** (pas WebView2) : l'effet glassy
-> final, la lecture vidéo/audio et le micro se valident sur le **`.exe` Windows**.
+> ⚠️ Under WSL, `tauri dev` uses the **WebKitGTK** engine (not WebView2): the final glass
+> effect, video/audio playback and the microphone must be validated on the **Windows `.exe`**.
 
-Vérifications :
+Checks:
 
 ```bash
-pnpm build                                          # type-check + build front
-cargo check --manifest-path src-tauri/Cargo.toml    # backend Rust
+pnpm build                                          # type-check + front build
+cargo check --manifest-path src-tauri/Cargo.toml    # Rust backend
 ```
 
 ---
 
-## 🪟 Construire l'installateur Windows (.exe)
+## 🪟 Build the Windows installer (.exe)
 
-Tauri ne peut pas cross-compiler de façon fiable un build Windows depuis Linux/WSL → le
-`.exe` est produit par **GitHub Actions** sur un runner Windows.
+Tauri can't reliably cross-compile a Windows build from Linux/WSL → the `.exe` is produced
+by **GitHub Actions** on a Windows runner.
 
-1. Pousse le projet sur GitHub.
-2. **Settings → Secrets → Actions** : ajoute `VITE_GOOGLE_CLIENT_ID` et
+1. Push the project to GitHub.
+2. **Settings → Secrets → Actions**: add `VITE_GOOGLE_CLIENT_ID` and
    `VITE_GOOGLE_CLIENT_SECRET`.
-3. Crée un tag de version :
+3. Create a version tag:
    ```bash
    git tag v0.1.0 && git push origin v0.1.0
    ```
-4. Le workflow [`release.yml`](.github/workflows/release.yml) build et publie un **brouillon
-   de Release** avec `Stela_0.1.0_x64-setup.exe` (NSIS, par-utilisateur, FR/EN). Vérifie puis
-   publie.
+4. The [`release.yml`](.github/workflows/release.yml) workflow builds and publishes a **draft
+   Release** with `Stela_0.1.0_x64-setup.exe` (NSIS, per-user, EN/FR). Review, then publish.
 
-> Pour supprimer l'avertissement **SmartScreen**, signe l'installeur avec un certificat
-> **EV** ou **Azure Trusted Signing**.
+> To remove the **SmartScreen** warning, sign the installer with an **EV certificate** or
+> **Azure Trusted Signing**.
 
 ---
 
 ## 🗂️ Architecture
 
 ```
-src/                      Frontend React / TypeScript
-  editor/extensions/      TipTap : markdown, tâches, maths, vidéo, audio, curseur, fondu, correcteur
-  spellcheck/             Web Worker nspell + détection eld + dictionnaires
-  drive/                  client (invoke), cache, médias, hook de synchro useDriveSync
-  components/             titlebar, sidebar, status bar, réglages, dialogues média
-  theme/                  thème dark/light suivant l'OS
-src-tauri/                Backend Rust (Tauri v2)
-  src/google/             OAuth PKCE + client Drive REST v3 (texte + binaire)
-  src/commands/           commandes exposées au frontend
-  src/secrets.rs          refresh token dans le trousseau OS
-.github/workflows/        release.yml — build du .exe sur windows-latest
+src/                      React / TypeScript frontend
+  editor/extensions/      TipTap: markdown, tasks, math, video, audio, caret, ink, spellcheck
+  spellcheck/             Web Worker nspell + eld detection + dictionaries
+  drive/                  client (invoke), cache, media, useDriveSync hook
+  components/             titlebar, sidebar, status bar, settings, media dialogs
+  theme/                  OS-following dark/light theme
+src-tauri/                Rust backend (Tauri v2)
+  src/google/             OAuth PKCE + Drive REST v3 client (text + binary)
+  src/commands/           commands exposed to the frontend
+  src/secrets.rs          refresh token in the OS keychain
+.github/workflows/        release.yml — builds the .exe on windows-latest
 ```
 
-**Pile :** Tauri v2 (Rust) · React 19 · TypeScript · Vite 7 · Tailwind v4 · TipTap 3 ·
+**Stack:** Tauri v2 (Rust) · React 19 · TypeScript · Vite 7 · Tailwind v4 · TipTap 3 ·
 KaTeX · nspell + Hunspell · Google Drive API v3.
 
 ---
 
-## ⚠️ Limites connues
+## ⚠️ Known limitations
 
-- `drive.file` ne voit que les fichiers créés par l'app (choisir un dossier Drive
-  arbitraire nécessiterait le Google Picker).
-- Installeur non signé → avertissement SmartScreen.
-- Rendu glassy optimal sous Windows 11 ; lecture média et micro non testables sous WSL.
+- `drive.file` only sees files the app created (picking an arbitrary existing Drive folder
+  would require the Google Picker).
+- An unsigned installer triggers a SmartScreen warning.
+- The glass effect is best on Windows 11; media playback and microphone can't be tested
+  under WSL.
 
 ---
 
-## 📄 Licence
+## 🤖 Built with AI
+
+Stela was designed and built with the help of a large language model
+(Anthropic's **Claude**), used for architecture, code generation and documentation. All
+choices were reviewed by the author. Contributions and fixes are welcome.
+
+---
+
+## 📄 License
 
 [MIT](LICENSE) © 2026 Auxance Jourdan.
 
-Les dictionnaires Hunspell embarqués conservent leur licence d'origine : **dictionary-fr**
-(MPL-2.0), **dictionary-en** (MIT AND BSD).
+The bundled Hunspell dictionaries keep their upstream licenses: **dictionary-fr** (MPL-2.0),
+**dictionary-en** (MIT AND BSD).
