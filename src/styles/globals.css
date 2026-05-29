@@ -22,6 +22,7 @@
   --caret-color: #16161a;
   --danger: #b23b3b;
   --shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  --selection: rgba(20, 20, 24, 0.16);
   color-scheme: light;
 }
 
@@ -42,11 +43,22 @@
   --caret-color: #f1f1f4;
   --danger: #e57373;
   --shadow: 0 14px 50px rgba(0, 0, 0, 0.5);
+  --selection: rgba(255, 255, 255, 0.22);
   color-scheme: dark;
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* Monochrome text selection (no browser blue), text stays readable. */
+::selection {
+  background: var(--selection);
+  color: var(--text);
+}
+::-moz-selection {
+  background: var(--selection);
+  color: var(--text);
 }
 
 html,

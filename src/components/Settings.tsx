@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { Overlay } from "./VideoDialog";
 import { getLangPref, setLangPref, type LangPref } from "../lib/language";
-import { useTheme } from "../theme/ThemeProvider";
+import { getThemePref, setThemePref, type ThemePref } from "../theme/useSystemTheme";
 
 export interface SettingsProps {
   connected: boolean;
@@ -20,9 +20,9 @@ export function Settings({
   onSignOut,
   onClose,
 }: SettingsProps) {
-  const theme = useTheme();
   const [folder, setFolder] = useState(folderName);
   const [lang, setLang] = useState<LangPref>(getLangPref());
+  const [themePref, setTheme] = useState<ThemePref>(getThemePref());
 
   const folderDirty = folder.trim().length > 0 && folder.trim() !== folderName;
 
@@ -89,7 +89,19 @@ export function Settings({
 
         <Section title="Apparence">
           <Row label="Thème">
-            <span className="settings-value">Suit le système · {theme === "dark" ? "Sombre" : "Clair"}</span>
+            <select
+              className="settings-select"
+              value={themePref}
+              onChange={(e) => {
+                const v = e.target.value as ThemePref;
+                setTheme(v);
+                setThemePref(v);
+              }}
+            >
+              <option value="system">Système</option>
+              <option value="light">Clair</option>
+              <option value="dark">Sombre</option>
+            </select>
           </Row>
         </Section>
 
