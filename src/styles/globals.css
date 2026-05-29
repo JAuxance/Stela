@@ -361,6 +361,17 @@ body {
   background: var(--accent);
 }
 
+.btn--danger {
+  background: var(--danger);
+  color: #fff;
+  border-color: transparent;
+}
+
+.btn--danger:hover {
+  opacity: 0.9;
+  background: var(--danger);
+}
+
 /* ---- Status bar ------------------------------------------------------------ */
 .statusbar {
   display: flex;
@@ -453,6 +464,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1px;
+  animation: dialog-bounce 200ms cubic-bezier(0.2, 0.9, 0.25, 1.25);
+  transform-origin: top left;
 }
 
 .menu__label {
@@ -1073,6 +1086,36 @@ textarea.math-input {
   opacity: 1;
 }
 
+/* Drag-to-resize handle (bottom-right of media nodes). */
+.resize-handle {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  width: 16px;
+  height: 16px;
+  z-index: 3;
+  cursor: ew-resize;
+  opacity: 0;
+  border-radius: 3px;
+  background: linear-gradient(
+    135deg,
+    transparent 0 46%,
+    var(--text-faint) 46% 54%,
+    transparent 54% 66%,
+    var(--text-faint) 66% 74%,
+    transparent 74%
+  );
+  transition: opacity 120ms ease;
+}
+
+.media-node:hover .resize-handle {
+  opacity: 0.85;
+}
+
+.resize-handle:hover {
+  opacity: 1;
+}
+
 .node-edit:hover {
   background: var(--hover);
   color: var(--text);
@@ -1144,6 +1187,8 @@ textarea.math-input {
   overflow: hidden;
   box-shadow: var(--shadow);
   background: var(--bg);
+  animation: dialog-bounce 300ms cubic-bezier(0.2, 0.9, 0.25, 1.25);
+  transform-origin: center;
 }
 
 .drawing-modal__bar {

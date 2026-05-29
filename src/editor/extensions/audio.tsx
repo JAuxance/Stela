@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { resolveDriveMediaUrl } from "../../drive/media";
 import { useI18n } from "../../i18n";
 import { NodeDelete } from "./video";
+import { useResize, ResizeHandle } from "./resize";
 
 const BARS = 72;
 
@@ -42,8 +43,9 @@ async function drawWaveform(canvas: HTMLCanvasElement, url: string) {
   }
 }
 
-function AudioView({ node, deleteNode }: NodeViewProps) {
+function AudioView({ node, deleteNode, updateAttributes }: NodeViewProps) {
   const { t } = useI18n();
+  const { style, onPointerDown } = useResize(node.attrs.width ?? null, (w) => updateAttributes({ width: w }));
   const fileId: string | null = node.attrs.fileId ?? null;
   const name: string = node.attrs.name ?? "Note vocale";
   const mime: string = node.attrs.mime ?? "audio/webm";
@@ -71,7 +73,7 @@ function AudioView({ node, deleteNode }: NodeViewProps) {
   }, [url]);
 
   return (
-    <NodeViewWrapper as="div" className="media-node audio-node" data-drag-handle>
+    <NodeViewWrapper as="div" className="media-node audio-node" data-drag-handle style={style}>
       <NodeDelete onDelete={deleteNode} />
       <div className="audio-row">
         <svg className="audio-icon" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -88,6 +90,7 @@ function AudioView({ node, deleteNode }: NodeViewProps) {
         <div className="media-loading">{error ?? t("media.loadingAudio")}</div>
       )}
       <div className="media-caption">{name}</div>
+      <ResizeHandle onPointerDown={onPointerDown} />
     </NodeViewWrapper>
   );
 }
@@ -103,6 +106,7 @@ export const AudioNote = Node.create({
     src: { default: "" },
     name: { default: "Note vocale" },
     mime: { default: "audio/webm" },
+    width: { default: null },
   }),
   parseHTML: () => [{ tag: "div[data-audio-note]" }],
   renderHTML: ({ HTMLAttributes }) =>

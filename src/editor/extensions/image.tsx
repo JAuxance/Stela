@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import { resolveDriveMediaUrl } from "../../drive/media";
 import { useI18n } from "../../i18n";
 import { NodeDelete } from "./video";
+import { useResize, ResizeHandle } from "./resize";
 
-function ImageView({ node, deleteNode }: NodeViewProps) {
+function ImageView({ node, deleteNode, updateAttributes }: NodeViewProps) {
   const { t } = useI18n();
+  const { style, onPointerDown } = useResize(node.attrs.width ?? null, (w) => updateAttributes({ width: w }));
   const src: string = node.attrs.src ?? "";
   const fileId: string | null = node.attrs.fileId ?? null;
   const alt: string = node.attrs.alt ?? "";
@@ -29,7 +31,7 @@ function ImageView({ node, deleteNode }: NodeViewProps) {
   }, [fileId]);
 
   return (
-    <NodeViewWrapper as="div" className="media-node media-image" data-drag-handle>
+    <NodeViewWrapper as="div" className="media-node media-image" data-drag-handle style={style}>
       <NodeDelete onDelete={deleteNode} />
       {url ? (
         <img className="media-img" src={url} alt={alt} />
@@ -37,6 +39,7 @@ function ImageView({ node, deleteNode }: NodeViewProps) {
         <div className="media-loading">{error ?? t("media.loadingImage")}</div>
       )}
       {alt && <div className="media-caption">{alt}</div>}
+      <ResizeHandle onPointerDown={onPointerDown} />
     </NodeViewWrapper>
   );
 }
@@ -52,6 +55,7 @@ export const ImageNode = Node.create({
     fileId: { default: null },
     alt: { default: "" },
     mime: { default: "image/png" },
+    width: { default: null },
   }),
   parseHTML: () => [{ tag: "div[data-image-node]" }],
   renderHTML: ({ HTMLAttributes }) =>

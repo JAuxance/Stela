@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Chart, registerables } from "chart.js";
 import { NodeDelete } from "./video";
 import { useI18n } from "../../i18n";
+import { useResize, ResizeHandle } from "./resize";
 
 Chart.register(...registerables);
 
@@ -66,6 +67,7 @@ function buildConfig(kind: Kind, title: string, labels: string[], values: number
 
 function ChartView({ node, updateAttributes, deleteNode }: NodeViewProps) {
   const { t } = useI18n();
+  const { style, onPointerDown } = useResize(node.attrs.width ?? null, (w) => updateAttributes({ width: w }));
   const kind: Kind = node.attrs.kind ?? "bar";
   const title: string = node.attrs.title ?? "";
   const labels: string[] = node.attrs.labels ?? [];
@@ -133,7 +135,7 @@ function ChartView({ node, updateAttributes, deleteNode }: NodeViewProps) {
   }
 
   return (
-    <NodeViewWrapper as="div" className="media-node chart-node">
+    <NodeViewWrapper as="div" className="media-node chart-node" style={style}>
       <NodeDelete onDelete={deleteNode} />
       <button
         className="node-edit"
@@ -154,6 +156,7 @@ function ChartView({ node, updateAttributes, deleteNode }: NodeViewProps) {
       <div className="chart-canvas-wrap">
         <canvas ref={canvasRef} />
       </div>
+      <ResizeHandle onPointerDown={onPointerDown} />
     </NodeViewWrapper>
   );
 }
@@ -169,6 +172,7 @@ export const ChartNode = Node.create({
     title: { default: "" },
     labels: { default: [] },
     values: { default: [] },
+    width: { default: null },
   }),
   parseHTML: () => [{ tag: "div[data-chart]" }],
   renderHTML: ({ HTMLAttributes }) => ["div", mergeAttributes(HTMLAttributes, { "data-chart": "" })],

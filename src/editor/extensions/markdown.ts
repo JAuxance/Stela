@@ -72,6 +72,7 @@ function demoteNode(node: JSONNode): JSONNode {
     if (a.fileId) p.set("fileId", String(a.fileId));
     if (a.src && a.provider !== "drive") p.set("src", String(a.src));
     if (a.mime) p.set("mime", String(a.mime));
+    if (a.width) p.set("width", String(a.width));
     p.set("name", String(a.name ?? "Vidéo"));
     return mediaParagraph(`Vidéo : ${a.name ?? "Vidéo"}`, "/video", p);
   }
@@ -80,6 +81,7 @@ function demoteNode(node: JSONNode): JSONNode {
     const p = new URLSearchParams();
     if (a.fileId) p.set("fileId", String(a.fileId));
     if (a.mime) p.set("mime", String(a.mime));
+    if (a.width) p.set("width", String(a.width));
     p.set("name", String(a.name ?? "Note vocale"));
     return mediaParagraph(`Note vocale : ${a.name ?? "Note vocale"}`, "/audio", p);
   }
@@ -89,6 +91,7 @@ function demoteNode(node: JSONNode): JSONNode {
     if (a.fileId) p.set("fileId", String(a.fileId));
     else if (a.src) p.set("src", String(a.src));
     if (a.mime) p.set("mime", String(a.mime));
+    if (a.width) p.set("width", String(a.width));
     p.set("alt", String(a.alt ?? "Image"));
     return mediaParagraph(`Image : ${a.alt ?? ""}`, "/image", p);
   }
@@ -101,7 +104,7 @@ function demoteNode(node: JSONNode): JSONNode {
   }
   if (node.type === "chart") {
     const a = node.attrs ?? {};
-    const json = JSON.stringify({ kind: a.kind, title: a.title, labels: a.labels, values: a.values });
+    const json = JSON.stringify({ kind: a.kind, title: a.title, labels: a.labels, values: a.values, width: a.width });
     return { type: "codeBlock", attrs: { language: "chart" }, content: [{ type: "text", text: json }] };
   }
   if (node.type === "drawing") {
@@ -143,6 +146,7 @@ function reviveNode(node: JSONNode): JSONNode {
             title: cfg.title ?? "",
             labels: Array.isArray(cfg.labels) ? cfg.labels : [],
             values: Array.isArray(cfg.values) ? cfg.values : [],
+            width: typeof cfg.width === "number" ? cfg.width : null,
           },
         };
       } catch {
@@ -176,6 +180,7 @@ function reviveNode(node: JSONNode): JSONNode {
     if (child?.type === "text" && href) {
       const url = new URL(href);
       const p = url.searchParams;
+      const width = p.get("width") ? Number(p.get("width")) : null;
       if (url.pathname === "/video") {
         return {
           type: "videoEmbed",
@@ -185,6 +190,7 @@ function reviveNode(node: JSONNode): JSONNode {
             fileId: p.get("fileId"),
             name: p.get("name") ?? "Vidéo",
             mime: p.get("mime") ?? "video/mp4",
+            width,
           },
         };
       }
@@ -196,6 +202,7 @@ function reviveNode(node: JSONNode): JSONNode {
             src: "",
             name: p.get("name") ?? "Note vocale",
             mime: p.get("mime") ?? "audio/webm",
+            width,
           },
         };
       }
@@ -207,6 +214,7 @@ function reviveNode(node: JSONNode): JSONNode {
             fileId: p.get("fileId"),
             alt: p.get("alt") ?? "",
             mime: p.get("mime") ?? "image/png",
+            width,
           },
         };
       }

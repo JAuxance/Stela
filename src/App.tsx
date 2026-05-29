@@ -5,6 +5,7 @@ import { StatusBar } from "./components/StatusBar";
 import { Settings } from "./components/Settings";
 import { Tabs } from "./components/Tabs";
 import { FirstRunLanguage } from "./components/FirstRunLanguage";
+import { ConfirmDialog } from "./components/ConfirmDialog";
 import { Editor } from "./editor/Editor";
 import { useDriveSync } from "./drive/syncEngine";
 import { resolvedLang, LANG_CHANGED_EVENT } from "./lib/language";
@@ -22,6 +23,7 @@ export function App() {
   const [lang, setLang] = useState(resolvedLang());
   const [openIds, setOpenIds] = useState<string[]>([]);
   const [needLang, setNeedLang] = useState(!hasUiLang());
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     const onLang = () => setLang(resolvedLang());
@@ -77,12 +79,7 @@ export function App() {
           busy={sync.status === "connecting" || sync.status === "loading"}
           onSelect={(id) => void sync.selectNote(id)}
           onNew={() => void sync.newNote()}
-          onDelete={(id) => {
-            if (window.confirm(t("confirm.deleteNote"))) {
-              setOpenIds((ids) => ids.filter((x) => x !== id));
-              void sync.removeNote(id);
-            }
-          }}
+          onDelete={(id) => setConfirmDeleteId(id)}
           onConnect={sync.connect}
           onSignOut={() => void sync.disconnect()}
           onOpenSettings={() => setSettingsOpen(true)}
@@ -158,6 +155,21 @@ export function App() {
             setUiLang(l);
             setNeedLang(false);
           }}
+        />
+      )}
+
+      {confirmDeleteId && (
+        <ConfirmDialog
+          title={t("action.delete")}
+          message={t("confirm.deleteNote")}
+          confirmLabel={t("action.delete")}
+          danger
+          onConfirm={() => {
+            const id = confirmDeleteId;
+            setOpenIds((ids) => ids.filter((x) => x !== id));
+            void sync.removeNote(id);
+          }}
+          onClose={() => setConfirmDeleteId(null)}
         />
       )}
     </div>

@@ -95,7 +95,14 @@ pub async fn create_note(
 ) -> Result<DriveFile> {
     let token = get_valid_access_token(state.inner()).await?;
     let folder = folder_id(&app, state.inner(), &token).await?;
-    drive_api::create_note(&state.client, &token, &folder, &name, &content).await
+    match drive_api::create_note(&state.client, &token, &folder, &name, &content).await {
+        Ok(file) => Ok(file),
+        Err(_) => {
+            store_delete(&app, "folderId");
+            let folder = folder_id(&app, state.inner(), &token).await?;
+            drive_api::create_note(&state.client, &token, &folder, &name, &content).await
+        }
+    }
 }
 
 #[tauri::command]
@@ -158,11 +165,22 @@ pub async fn upload_media(
     data_base64: String,
 ) -> Result<DriveFile> {
     let token = get_valid_access_token(state.inner()).await?;
-    let folder = media_folder_id(&app, state.inner(), &token).await?;
     let bytes = STANDARD
         .decode(data_base64.as_bytes())
         .map_err(|e| Error::Drive(format!("invalid base64 media: {e}")))?;
-    drive_api::create_binary(&state.client, &token, &folder, &name, &mime_type, &bytes).await
+
+    let folder = media_folder_id(&app, state.inner(), &token).await?;
+    match drive_api::create_binary(&state.client, &token, &folder, &name, &mime_type, &bytes).await {
+        Ok(file) => Ok(file),
+        Err(_) => {
+            // The cached folder id may be stale (deleted, or a different account).
+            // Re-resolve the folders and retry once.
+            store_delete(&app, "mediaFolderId");
+            store_delete(&app, "folderId");
+            let folder = media_folder_id(&app, state.inner(), &token).await?;
+            drive_api::create_binary(&state.client, &token, &folder, &name, &mime_type, &bytes).await
+        }
+    }
 }
 
 /// Download a media file's bytes as base64 so the webview can build a blob URL.

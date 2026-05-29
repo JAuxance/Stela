@@ -3,6 +3,7 @@ use std::time::{Duration, Instant};
 
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_oauth::OauthConfig;
+use tauri_plugin_store::StoreExt;
 
 use crate::error::{Error, Result};
 use crate::google::oauth;
@@ -40,11 +41,20 @@ pub async fn is_authenticated() -> Result<bool> {
 }
 
 #[tauri::command]
-pub async fn sign_out(state: State<'_, AppState>) -> Result<()> {
+pub async fn sign_out(app: AppHandle, state: State<'_, AppState>) -> Result<()> {
     secrets::delete_refresh_token()?;
-    let mut auth = state.auth.lock().await;
-    auth.access_token = None;
-    auth.expires_at = None;
+    {
+        let mut auth = state.auth.lock().await;
+        auth.access_token = None;
+        auth.expires_at = None;
+    }
+    // Drop cached Drive folder/page ids so a different account doesn't reuse them.
+    if let Ok(store) = app.store("stela.json") {
+        for key in ["folderId", "mediaFolderId", "pageToken"] {
+            store.delete(key);
+        }
+        let _ = store.save();
+    }
     Ok(())
 }
 

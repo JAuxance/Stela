@@ -3,6 +3,7 @@ import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tip
 import { useEffect, useState } from "react";
 import { resolveDriveMediaUrl } from "../../drive/media";
 import { useI18n } from "../../i18n";
+import { useResize, ResizeHandle } from "./resize";
 
 export function NodeDelete({ onDelete }: { onDelete: () => void }) {
   return (
@@ -22,8 +23,9 @@ export function NodeDelete({ onDelete }: { onDelete: () => void }) {
   );
 }
 
-function VideoView({ node, deleteNode }: NodeViewProps) {
+function VideoView({ node, deleteNode, updateAttributes }: NodeViewProps) {
   const { t } = useI18n();
+  const { style, onPointerDown } = useResize(node.attrs.width ?? null, (w) => updateAttributes({ width: w }));
   const provider: string = node.attrs.provider ?? "url";
   const src: string = node.attrs.src ?? "";
   const fileId: string | null = node.attrs.fileId ?? null;
@@ -48,7 +50,7 @@ function VideoView({ node, deleteNode }: NodeViewProps) {
   }, [provider, fileId]);
 
   return (
-    <NodeViewWrapper as="div" className="media-node" data-drag-handle>
+    <NodeViewWrapper as="div" className="media-node" data-drag-handle style={style}>
       <NodeDelete onDelete={deleteNode} />
       {framed ? (
         <div className="media-frame">
@@ -65,6 +67,7 @@ function VideoView({ node, deleteNode }: NodeViewProps) {
         <div className="media-loading">{error ?? t("media.loadingVideo")}</div>
       )}
       <div className="media-caption">{name}</div>
+      <ResizeHandle onPointerDown={onPointerDown} />
     </NodeViewWrapper>
   );
 }
@@ -81,6 +84,7 @@ export const VideoEmbed = Node.create({
     fileId: { default: null },
     name: { default: "Vidéo" },
     mime: { default: "video/mp4" },
+    width: { default: null },
   }),
   parseHTML: () => [{ tag: "div[data-video-embed]" }],
   renderHTML: ({ HTMLAttributes }) =>
