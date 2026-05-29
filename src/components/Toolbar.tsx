@@ -1,6 +1,8 @@
 import type { Editor } from "@tiptap/core";
 import type { ReactNode } from "react";
 import { insertMathInline, insertMathBlock } from "../editor/extensions/math";
+import { insertChart } from "../editor/extensions/chart";
+import { insertMermaid } from "../editor/extensions/mermaid";
 
 export interface ToolbarProps {
   editor: Editor | null;
@@ -66,6 +68,22 @@ const IconImage = svg(
     <rect x="2" y="3" width="12" height="10" rx="2" />
     <circle cx="5.5" cy="6.5" r="1.1" fill="currentColor" stroke="none" />
     <path d="M3 12 L6.5 8.5 L9 11 L11 9 L13 11" />
+  </>,
+);
+const IconChart = svg(
+  <>
+    <path d="M2 13.5 H14" />
+    <rect x="3" y="8" width="2.4" height="4" fill="currentColor" stroke="none" />
+    <rect x="6.8" y="5" width="2.4" height="7" fill="currentColor" stroke="none" />
+    <rect x="10.6" y="3" width="2.4" height="9" fill="currentColor" stroke="none" />
+  </>,
+);
+const IconDiagram = svg(
+  <>
+    <rect x="5.5" y="1.5" width="5" height="3.2" rx="0.8" />
+    <rect x="2" y="10.5" width="4.5" height="3.2" rx="0.8" />
+    <rect x="9.5" y="10.5" width="4.5" height="3.2" rx="0.8" />
+    <path d="M8 4.7 V7.5 M8 7.5 H4.2 V10.5 M8 7.5 H11.8 V10.5" />
   </>,
 );
 const IconUndo = svg(
@@ -157,6 +175,12 @@ export function Toolbar({ editor, onInsertImage, onInsertVideo, onRecordAudio }:
       <Btn run={() => insertMathBlock(editor)} title="Bloc formule ($$…$$)">
         <span style={{ fontStyle: "italic" }}>Σ</span>
         <span style={{ fontSize: 10, opacity: 0.7 }}>=</span>
+      </Btn>
+      <Btn run={() => insertChart(editor)} title="Graphique (données)">
+        {IconChart}
+      </Btn>
+      <Btn run={() => insertMermaid(editor)} title="Diagramme (Mermaid)">
+        {IconDiagram}
       </Btn>
       {(onInsertImage || onRecordAudio || onInsertVideo) && <span className="tb-sep" />}
       {onInsertImage && (

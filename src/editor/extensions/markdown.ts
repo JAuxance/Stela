@@ -92,6 +92,18 @@ function demoteNode(node: JSONNode): JSONNode {
     p.set("alt", String(a.alt ?? "Image"));
     return mediaParagraph(`Image : ${a.alt ?? ""}`, "/image", p);
   }
+  if (node.type === "mermaidDiagram") {
+    return {
+      type: "codeBlock",
+      attrs: { language: "mermaid" },
+      content: [{ type: "text", text: String(node.attrs?.code ?? "") }],
+    };
+  }
+  if (node.type === "chart") {
+    const a = node.attrs ?? {};
+    const json = JSON.stringify({ kind: a.kind, title: a.title, labels: a.labels, values: a.values });
+    return { type: "codeBlock", attrs: { language: "chart" }, content: [{ type: "text", text: json }] };
+  }
   if (node.content) return { ...node, content: node.content.map(demoteNode) };
   return node;
 }
@@ -112,6 +124,30 @@ function reviveInlineText(node: JSONNode): JSONNode[] {
 }
 
 function reviveNode(node: JSONNode): JSONNode {
+  // Fenced code blocks tagged mermaid/chart become their rich nodes.
+  if (node.type === "codeBlock") {
+    const lang = (node.attrs?.language as string | undefined) ?? "";
+    const text = node.content?.map((c) => c.text ?? "").join("") ?? "";
+    if (lang === "mermaid") return { type: "mermaidDiagram", attrs: { code: text } };
+    if (lang === "chart") {
+      try {
+        const cfg = JSON.parse(text);
+        return {
+          type: "chart",
+          attrs: {
+            kind: cfg.kind ?? "bar",
+            title: cfg.title ?? "",
+            labels: Array.isArray(cfg.labels) ? cfg.labels : [],
+            values: Array.isArray(cfg.values) ? cfg.values : [],
+          },
+        };
+      } catch {
+        /* leave as a normal code block */
+      }
+    }
+    return node;
+  }
+
   if (node.type === "paragraph" && node.content && node.content.length === 1) {
     const child = node.content[0];
 

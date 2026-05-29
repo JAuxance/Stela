@@ -8,6 +8,8 @@ import { MathInline, MathBlock } from "./math";
 import { VideoEmbed } from "./video";
 import { AudioNote } from "./audio";
 import { ImageNode } from "./image";
+import { ChartNode } from "./chart";
+import { MermaidNode } from "./mermaid";
 import type { Lang } from "../../lib/language";
 
 export interface BuildOptions {
@@ -30,6 +32,8 @@ export function buildExtensions(options: BuildOptions) {
     VideoEmbed,
     AudioNote,
     ImageNode,
+    ChartNode,
+    MermaidNode,
     markdownExtension(),
     SmoothCaret,
     TypingInk,

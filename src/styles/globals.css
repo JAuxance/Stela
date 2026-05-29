@@ -1008,6 +1008,79 @@ textarea.math-input {
   border-color: transparent;
 }
 
+.node-edit {
+  position: absolute;
+  top: 6px;
+  right: 38px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--glass-strong);
+  backdrop-filter: blur(8px);
+  color: var(--text-soft);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.media-node:hover .node-edit {
+  opacity: 1;
+}
+
+.node-edit:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+/* ---- Charts & diagrams ----------------------------------------------------- */
+.chart-canvas-wrap {
+  position: relative;
+  height: 300px;
+}
+
+.chart-edit,
+.chart-edit-row {
+  display: flex;
+  gap: 8px;
+}
+
+.chart-edit {
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chart-data {
+  width: 100%;
+  resize: vertical;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+}
+
+.chart-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mermaid-svg {
+  display: flex;
+  justify-content: center;
+}
+
+.mermaid-svg svg {
+  max-width: 100%;
+  height: auto;
+}
+
 /* ---- Settings (iOS grouped list) ------------------------------------------ */
 .settings {
   display: flex;
