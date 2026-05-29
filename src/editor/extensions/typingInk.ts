@@ -8,7 +8,7 @@ import { Decoration, DecorationSet } from "@tiptap/pm/view";
  * decorations are pruned once the animation is done so the DOM stays clean.
  */
 const key = new PluginKey<DecorationSet>("stela-typing-ink");
-const LIFETIME = 460; // ms — must exceed the CSS animation duration
+const LIFETIME = 580; // ms — must exceed the CSS animation duration
 const MAX_RUN = 12; // don't animate big inserts (paste / note load)
 
 interface InkSpec {

@@ -23,11 +23,17 @@ export function getLangPref(): LangPref {
   }
 }
 
+export const LANG_CHANGED_EVENT = "stela-lang-changed";
+
 export function setLangPref(pref: LangPref): void {
   try {
     localStorage.setItem(PREF_KEY, pref);
   } catch {
     /* ignore */
+  }
+  // Notify live listeners (spell checker, status bar) so no restart is needed.
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(LANG_CHANGED_EVENT, { detail: pref }));
   }
 }
 

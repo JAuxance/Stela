@@ -610,19 +610,24 @@ body {
   color: var(--text-faint);
 }
 
-/* ---- Editor toolbar -------------------------------------------------------- */
+/* ---- Editor shell + toolbar ------------------------------------------------ */
+.editor-shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Fixed header bar — always above the scrolling content (engine-agnostic). */
 .toolbar {
-  position: sticky;
-  top: 0;
+  flex: 0 0 auto;
   z-index: 6;
   display: flex;
   align-items: center;
   gap: 2px;
   flex-wrap: wrap;
-  padding: 6px;
-  margin-bottom: 18px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--line);
 }
 
 .tb-btn {
@@ -771,7 +776,7 @@ textarea.math-input {
   z-index: 80;
   display: grid;
   place-items: center;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.28);
   backdrop-filter: blur(2px);
 }
 
@@ -781,6 +786,8 @@ textarea.math-input {
   border-radius: 16px;
   padding: 16px;
   box-shadow: var(--shadow);
+  /* Match the app surface tone so Settings doesn't look darker than the app. */
+  background: linear-gradient(var(--bg), var(--bg-deep));
 }
 
 .dialog-head {

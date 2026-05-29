@@ -5,7 +5,7 @@ import { StatusBar } from "./components/StatusBar";
 import { Settings } from "./components/Settings";
 import { Editor } from "./editor/Editor";
 import { useDriveSync } from "./drive/syncEngine";
-import { resolvedLang } from "./lib/language";
+import { resolvedLang, LANG_CHANGED_EVENT } from "./lib/language";
 
 function countWords(md: string): number {
   return (md.match(/[\p{L}\p{N}]+/gu) ?? []).length;
@@ -16,6 +16,13 @@ export function App() {
   const [words, setWords] = useState(0);
   const [title, setTitle] = useState(sync.activeName);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [lang, setLang] = useState(resolvedLang());
+
+  useEffect(() => {
+    const onLang = () => setLang(resolvedLang());
+    window.addEventListener(LANG_CHANGED_EVENT, onLang);
+    return () => window.removeEventListener(LANG_CHANGED_EVENT, onLang);
+  }, []);
 
   // Reset the title field whenever a different note loads.
   useEffect(() => {
@@ -99,36 +106,21 @@ export function App() {
             </Banner>
           )}
 
-          <div className="editor-scroll">
-            <div className="editor-column">
-              {showTitle && (
-                <input
-                  className="note-title"
-                  value={title}
-                  placeholder="Sans titre"
-                  onChange={(e) => setTitle(e.target.value)}
-                  onBlur={commitTitle}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      (e.target as HTMLInputElement).blur();
-                    }
-                  }}
-                />
-              )}
-              <Editor
-                noteKey={sync.noteKey}
-                initialMarkdown={sync.initialMarkdown}
-                editable={sync.editable}
-                onChange={handleChange}
-                canUpload={sync.connected}
-              />
-            </div>
-          </div>
+          <Editor
+            noteKey={sync.noteKey}
+            initialMarkdown={sync.initialMarkdown}
+            editable={sync.editable}
+            onChange={handleChange}
+            canUpload={sync.connected}
+            showTitle={showTitle}
+            title={title}
+            onTitleChange={setTitle}
+            onTitleCommit={commitTitle}
+          />
         </main>
       </div>
 
-      <StatusBar status={sync.status} lang={resolvedLang()} words={words} />
+      <StatusBar status={sync.status} lang={lang} words={words} />
 
       {settingsOpen && (
         <Settings

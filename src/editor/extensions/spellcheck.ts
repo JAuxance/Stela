@@ -2,7 +2,7 @@ import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey, type EditorState } from "@tiptap/pm/state";
 import { Decoration, DecorationSet, type EditorView } from "@tiptap/pm/view";
 import { checkParagraphs } from "../../spellcheck/proofreader";
-import type { Lang } from "../../lib/language";
+import { resolvedLang, LANG_CHANGED_EVENT, type Lang } from "../../lib/language";
 
 export interface SpellContextInfo {
   word: string;
@@ -35,10 +35,13 @@ export const spellKey = new PluginKey<SpellState>("stela-spellcheck");
 class SpellcheckView {
   private timer: ReturnType<typeof setTimeout> | null = null;
 
+  private readonly onLangChange = () => this.schedule();
+
   constructor(
     private view: EditorView,
     private options: SpellcheckOptions,
   ) {
+    window.addEventListener(LANG_CHANGED_EVENT, this.onLangChange);
     this.schedule();
   }
 
@@ -70,7 +73,7 @@ class SpellcheckView {
       return;
     }
 
-    const results = await checkParagraphs(paragraphs, this.options.defaultLang);
+    const results = await checkParagraphs(paragraphs, resolvedLang());
 
     // The document may have changed while awaiting — build against the live doc.
     const live = this.view.state;
@@ -94,6 +97,7 @@ class SpellcheckView {
 
   destroy() {
     if (this.timer) clearTimeout(this.timer);
+    window.removeEventListener(LANG_CHANGED_EVENT, this.onLangChange);
   }
 }
 

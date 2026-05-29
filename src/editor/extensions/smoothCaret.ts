@@ -17,7 +17,7 @@ class CaretView {
   private caret: HTMLDivElement;
   private host: HTMLElement;
   private raf = 0;
-  private visible = false;
+  private everShown = false;
   private readonly onFocusChange = () => this.schedule();
 
   constructor(private view: EditorView) {
@@ -52,7 +52,6 @@ class CaretView {
   private hide() {
     this.caret.style.opacity = "0";
     this.caret.classList.remove("is-blinking");
-    this.visible = false;
   }
 
   private draw() {
@@ -80,19 +79,20 @@ class CaretView {
     const top = coords.top - rect.top;
     const height = Math.max(coords.bottom - coords.top, 14);
 
-    // When (re)appearing, jump to the position without animating so it doesn't
-    // glide in from the corner; subsequent moves glide via the CSS transition.
-    const appearing = !this.visible;
-    if (appearing) this.caret.style.transition = "none";
+    // Only the very first appearance snaps into place (no corner glide). Every
+    // later move — including clicks and refocus — glides via the CSS transition,
+    // so the caret never teleports.
+    const firstEver = !this.everShown;
+    if (firstEver) this.caret.style.transition = "none";
 
     this.caret.style.height = `${height}px`;
     this.caret.style.transform = `translate3d(${left}px, ${top}px, 0)`;
     this.caret.style.opacity = "1";
 
-    if (appearing) {
-      void this.caret.offsetWidth; // commit the no-transition jump
+    if (firstEver) {
+      void this.caret.offsetWidth; // commit the no-transition placement
       this.caret.style.transition = ""; // restore the glide from the stylesheet
-      this.visible = true;
+      this.everShown = true;
     }
 
     // Restart the soft blink only after the cursor settles, so movement reads as
