@@ -11,7 +11,7 @@ import { AudioRecorder } from "../components/AudioRecorder";
 import { insertVideo } from "./extensions/video";
 import { insertAudio } from "./extensions/audio";
 import { addWord, suggest } from "../spellcheck/proofreader";
-import { defaultLang } from "../lib/language";
+import { resolvedLang } from "../lib/language";
 
 interface MenuState extends SpellContextInfo {
   suggestions: string[];
@@ -40,7 +40,7 @@ export function Editor({
   const [menu, setMenu] = useState<MenuState | null>(null);
   const [videoOpen, setVideoOpen] = useState(false);
   const [recOpen, setRecOpen] = useState(false);
-  const lang = defaultLang();
+  const lang = resolvedLang();
 
   const handleContextMenu = useCallback((info: SpellContextInfo) => {
     setMenu({ ...info, suggestions: [], loading: true });

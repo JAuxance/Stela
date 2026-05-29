@@ -25,7 +25,11 @@ export interface DriveSync {
   selectNote: (id: string) => Promise<void>;
   newNote: () => Promise<void>;
   deleteActive: () => Promise<void>;
+  removeNote: (id: string) => Promise<void>;
   renameActive: (name: string) => Promise<void>;
+  /** Drive folder name notes are stored under. */
+  folderName: string;
+  changeFolder: (name: string) => Promise<void>;
   onContentChange: (markdown: string) => void;
   /** Discard local edits and reload the note from Drive. */
   resolveConflict: () => Promise<void>;
@@ -50,6 +54,7 @@ export function useDriveSync(): DriveSync {
   const [initialMarkdown, setInitialMarkdown] = useState(DRAFT_TEMPLATE);
   const [nonce, setNonce] = useState(0);
   const [lastError, setLastError] = useState<string | null>(null);
+  const [folderName, setFolderName] = useState("Stela Notes");
 
   // Refs mirror state for use inside async callbacks / intervals.
   const connectedRef = useRef(false);
@@ -193,6 +198,46 @@ export function useDriveSync(): DriveSync {
     }
   }, []);
 
+  const removeNote = useCallback(
+    async (id: string) => {
+      if (!connectedRef.current) return;
+      try {
+        await drive.deleteNote(id);
+        const remaining = notesRef.current.filter((n) => n.id !== id);
+        setNotes(remaining);
+        if (activeIdRef.current === id) {
+          if (remaining[0]) await selectNote(remaining[0].id);
+          else reload(DRAFT_TEMPLATE, "Brouillon", null);
+        }
+        setStatus("saved");
+      } catch {
+        setStatus("error");
+      }
+    },
+    [reload, selectNote],
+  );
+
+  const changeFolder = useCallback(
+    async (name: string) => {
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      try {
+        await drive.setNotesFolder(trimmed);
+        setFolderName(trimmed);
+        if (connectedRef.current) {
+          setStatus("loading");
+          await drive.ensureNotesFolder();
+          await refreshList();
+          reload(DRAFT_TEMPLATE, "Brouillon", null);
+          setStatus("idle");
+        }
+      } catch {
+        setStatus("error");
+      }
+    },
+    [refreshList, reload],
+  );
+
   const resolveConflict = useCallback(async () => {
     const id = activeIdRef.current;
     if (!id) return;
@@ -262,6 +307,12 @@ export function useDriveSync(): DriveSync {
     (async () => {
       try {
         await drive.configure();
+        try {
+          const name = await drive.getNotesFolder();
+          if (!cancelled && name) setFolderName(name);
+        } catch {
+          /* keep default */
+        }
         const authed = await drive.isAuthenticated();
         if (cancelled) return;
         if (authed) {
@@ -338,7 +389,10 @@ export function useDriveSync(): DriveSync {
     selectNote,
     newNote,
     deleteActive,
+    removeNote,
     renameActive,
+    folderName,
+    changeFolder,
     onContentChange,
     resolveConflict,
     keepLocal,

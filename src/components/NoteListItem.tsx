@@ -18,17 +18,31 @@ export interface NoteListItemProps {
   modifiedTime?: string;
   active: boolean;
   onClick: () => void;
+  onDelete?: () => void;
 }
 
-export function NoteListItem({ name, modifiedTime, active, onClick }: NoteListItemProps) {
+export function NoteListItem({ name, modifiedTime, active, onClick, onDelete }: NoteListItemProps) {
   return (
-    <button
-      className={`note-item${active ? " note-item--active" : ""}`}
-      onClick={onClick}
-      title={name}
-    >
-      <span className="note-item__name">{name.replace(/\.md$/i, "") || "Sans titre"}</span>
-      <span className="note-item__meta">{formatRelative(modifiedTime)}</span>
-    </button>
+    <div className={`note-item${active ? " note-item--active" : ""}`}>
+      <button className="note-item__main" onClick={onClick} title={name}>
+        <span className="note-item__name">{name.replace(/\.md$/i, "") || "Sans titre"}</span>
+        <span className="note-item__meta">{formatRelative(modifiedTime)}</span>
+      </button>
+      {onDelete && (
+        <button
+          className="note-item__del"
+          aria-label="Supprimer la note"
+          title="Supprimer"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+            <path d="M3 4.5h10M6.5 4.5V3.2h3V4.5M5 4.5l.6 8.3h4.8L11 4.5" />
+          </svg>
+        </button>
+      )}
+    </div>
   );
 }

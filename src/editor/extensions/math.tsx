@@ -2,6 +2,7 @@ import { Node, nodeInputRule, mergeAttributes } from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import katex from "katex";
+import { NodeDelete } from "./video";
 
 function renderKatex(latex: string, displayMode: boolean): string {
   try {
@@ -11,7 +12,7 @@ function renderKatex(latex: string, displayMode: boolean): string {
   }
 }
 
-function MathComponent({ node, updateAttributes, selected, editor }: NodeViewProps) {
+function MathComponent({ node, updateAttributes, selected, editor, deleteNode }: NodeViewProps) {
   const display = node.type.name === "mathBlock";
   const latex: string = node.attrs.latex ?? "";
   const [editing, setEditing] = useState(latex.trim().length === 0);
@@ -66,8 +67,10 @@ function MathComponent({ node, updateAttributes, selected, editor }: NodeViewPro
         setDraft(latex);
         setEditing(true);
       }}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
+    >
+      {display && <NodeDelete onDelete={deleteNode} />}
+      <span dangerouslySetInnerHTML={{ __html: html }} />
+    </NodeViewWrapper>
   );
 }
 

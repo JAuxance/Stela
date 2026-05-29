@@ -2,6 +2,7 @@ import { Node, mergeAttributes, type Editor } from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import { useEffect, useRef, useState } from "react";
 import { resolveDriveMediaUrl } from "../../drive/media";
+import { NodeDelete } from "./video";
 
 const BARS = 72;
 
@@ -40,7 +41,7 @@ async function drawWaveform(canvas: HTMLCanvasElement, url: string) {
   }
 }
 
-function AudioView({ node }: NodeViewProps) {
+function AudioView({ node, deleteNode }: NodeViewProps) {
   const fileId: string | null = node.attrs.fileId ?? null;
   const name: string = node.attrs.name ?? "Note vocale";
   const mime: string = node.attrs.mime ?? "audio/webm";
@@ -69,6 +70,7 @@ function AudioView({ node }: NodeViewProps) {
 
   return (
     <NodeViewWrapper as="div" className="media-node audio-node" data-drag-handle>
+      <NodeDelete onDelete={deleteNode} />
       <div className="audio-row">
         <svg className="audio-icon" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
           <rect x="6" y="1.8" width="4" height="7" rx="2" />

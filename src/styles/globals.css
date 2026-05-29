@@ -214,16 +214,10 @@ body {
 }
 
 .note-item {
-  text-align: left;
-  border: 0;
-  background: transparent;
-  border-radius: 10px;
-  padding: 9px 11px;
-  cursor: pointer;
-  color: var(--text-soft);
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  border-radius: 10px;
+  color: var(--text-soft);
   transition: background 120ms ease, color 120ms ease;
 }
 
@@ -235,6 +229,45 @@ body {
 .note-item--active {
   background: var(--active);
   color: var(--text);
+}
+
+.note-item__main {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 9px 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.note-item__del {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-right: 6px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.note-item:hover .note-item__del {
+  opacity: 1;
+}
+
+.note-item__del:hover {
+  background: color-mix(in srgb, var(--danger) 16%, transparent);
+  color: var(--danger);
 }
 
 .note-item__name {
@@ -835,4 +868,134 @@ textarea.math-input {
     opacity: 0.35;
     transform: scale(0.82);
   }
+}
+
+/* ---- Node delete button (media / block math) ------------------------------ */
+.media-node,
+.math-node.is-block {
+  position: relative;
+}
+
+.node-del {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--glass-strong);
+  backdrop-filter: blur(8px);
+  color: var(--text-soft);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.media-node:hover .node-del,
+.math-node.is-block:hover .node-del {
+  opacity: 1;
+}
+
+.node-del:hover {
+  background: var(--danger);
+  color: #fff;
+  border-color: transparent;
+}
+
+/* ---- Settings (iOS grouped list) ------------------------------------------ */
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-height: min(70vh, 560px);
+  overflow-y: auto;
+  margin: -4px -4px -8px;
+  padding: 4px;
+}
+
+.settings-section__title {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  padding: 0 4px 7px;
+}
+
+.settings-group {
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  overflow: hidden;
+  background: var(--hover);
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 13px;
+  min-height: 46px;
+}
+
+.settings-row + .settings-row {
+  border-top: 1px solid var(--line);
+}
+
+.settings-label {
+  font-size: 14px;
+  color: var(--text);
+}
+
+.settings-control {
+  display: flex;
+  align-items: center;
+}
+
+.settings-value {
+  font-size: 13px;
+  color: var(--text-faint);
+}
+
+.settings-input,
+.settings-select {
+  height: 34px;
+  min-width: 160px;
+  padding: 0 10px;
+  border-radius: 9px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13.5px;
+  outline: none;
+}
+
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 2px 0;
+}
+
+.settings-btn {
+  height: 32px;
+  padding: 0 14px;
+}
+
+.settings-hint {
+  font-size: 12px;
+  color: var(--text-faint);
+  line-height: 1.5;
+  margin: 7px 4px 0;
+}
+
+.settings-hint code {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.92em;
+  background: var(--hover);
+  padding: 0.05em 0.3em;
+  border-radius: 4px;
 }

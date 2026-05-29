@@ -3,7 +3,25 @@ import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tip
 import { useEffect, useState } from "react";
 import { resolveDriveMediaUrl } from "../../drive/media";
 
-function VideoView({ node }: NodeViewProps) {
+export function NodeDelete({ onDelete }: { onDelete: () => void }) {
+  return (
+    <button
+      className="node-del"
+      title="Supprimer"
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={(e) => {
+        e.stopPropagation();
+        onDelete();
+      }}
+    >
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+        <path d="M4 4 L12 12 M12 4 L4 12" />
+      </svg>
+    </button>
+  );
+}
+
+function VideoView({ node, deleteNode }: NodeViewProps) {
   const provider: string = node.attrs.provider ?? "url";
   const src: string = node.attrs.src ?? "";
   const fileId: string | null = node.attrs.fileId ?? null;
@@ -29,6 +47,7 @@ function VideoView({ node }: NodeViewProps) {
 
   return (
     <NodeViewWrapper as="div" className="media-node" data-drag-handle>
+      <NodeDelete onDelete={deleteNode} />
       {framed ? (
         <div className="media-frame">
           <iframe

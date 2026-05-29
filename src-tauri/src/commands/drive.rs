@@ -26,13 +26,45 @@ fn store_put(app: &AppHandle, key: &str, value: &str) {
     }
 }
 
+fn store_delete(app: &AppHandle, key: &str) {
+    if let Ok(store) = app.store(STORE_FILE) {
+        store.delete(key);
+        let _ = store.save();
+    }
+}
+
+fn notes_folder_name(app: &AppHandle) -> String {
+    store_get(app, "folderName").unwrap_or_else(|| FOLDER_NAME.to_string())
+}
+
 async fn folder_id(app: &AppHandle, state: &AppState, token: &str) -> Result<String> {
     if let Some(id) = store_get(app, "folderId") {
         return Ok(id);
     }
-    let id = drive_api::ensure_folder(&state.client, token, FOLDER_NAME).await?;
+    let id = drive_api::ensure_folder(&state.client, token, &notes_folder_name(app)).await?;
     store_put(app, "folderId", &id);
     Ok(id)
+}
+
+/// The folder name notes are stored under in Drive.
+#[tauri::command]
+pub fn get_notes_folder(app: AppHandle) -> String {
+    notes_folder_name(&app)
+}
+
+/// Change where notes are stored: sets the folder name and clears cached folder
+/// ids / change token so the next sync re-resolves (creating the folder if new).
+#[tauri::command]
+pub fn set_notes_folder(app: AppHandle, name: String) -> Result<()> {
+    let trimmed = name.trim();
+    if trimmed.is_empty() {
+        return Err(crate::error::Error::Drive("folder name is empty".into()));
+    }
+    store_put(&app, "folderName", trimmed);
+    store_delete(&app, "folderId");
+    store_delete(&app, "mediaFolderId");
+    store_delete(&app, "pageToken");
+    Ok(())
 }
 
 #[tauri::command]

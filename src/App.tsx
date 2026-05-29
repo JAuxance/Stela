@@ -2,9 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import { Titlebar } from "./components/Titlebar";
 import { Sidebar } from "./components/Sidebar";
 import { StatusBar } from "./components/StatusBar";
+import { Settings } from "./components/Settings";
 import { Editor } from "./editor/Editor";
 import { useDriveSync } from "./drive/syncEngine";
-import { defaultLang } from "./lib/language";
+import { resolvedLang } from "./lib/language";
 
 function countWords(md: string): number {
   return (md.match(/[\p{L}\p{N}]+/gu) ?? []).length;
@@ -14,6 +15,7 @@ export function App() {
   const sync = useDriveSync();
   const [words, setWords] = useState(0);
   const [title, setTitle] = useState(sync.activeName);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Reset the title field whenever a different note loads.
   useEffect(() => {
@@ -48,8 +50,14 @@ export function App() {
           busy={sync.status === "connecting" || sync.status === "loading"}
           onSelect={(id) => void sync.selectNote(id)}
           onNew={() => void sync.newNote()}
+          onDelete={(id) => {
+            if (window.confirm("Supprimer définitivement cette note de Google Drive ?")) {
+              void sync.removeNote(id);
+            }
+          }}
           onConnect={sync.connect}
           onSignOut={() => void sync.disconnect()}
+          onOpenSettings={() => setSettingsOpen(true)}
         />
 
         <main className="main">
@@ -120,7 +128,21 @@ export function App() {
         </main>
       </div>
 
-      <StatusBar status={sync.status} lang={defaultLang()} words={words} />
+      <StatusBar status={sync.status} lang={resolvedLang()} words={words} />
+
+      {settingsOpen && (
+        <Settings
+          connected={sync.connected}
+          folderName={sync.folderName}
+          onChangeFolder={(name) => void sync.changeFolder(name)}
+          onConnect={() => {
+            setSettingsOpen(false);
+            sync.connect();
+          }}
+          onSignOut={() => void sync.disconnect()}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
     </div>
   );
 }

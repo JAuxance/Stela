@@ -27,6 +27,8 @@ pub fn run() {
             commands::drive::poll_changes,
             commands::drive::upload_media,
             commands::drive::download_media,
+            commands::drive::get_notes_folder,
+            commands::drive::set_notes_folder,
             commands::window::os_theme,
         ])
         .run(tauri::generate_context!())

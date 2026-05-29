@@ -44,6 +44,9 @@ export const uploadMedia = (name: string, mimeType: string, dataBase64: string) 
   invoke<DriveFile>("upload_media", { name, mimeType, dataBase64 });
 export const downloadMedia = (fileId: string) => invoke<string>("download_media", { fileId });
 
+export const getNotesFolder = () => invoke<string>("get_notes_folder");
+export const setNotesFolder = (name: string) => invoke<void>("set_notes_folder", { name });
+
 /** Subscribe to the backend's OAuth completion event. */
 export async function onAuthResult(
   cb: (ok: boolean, error?: string) => void,

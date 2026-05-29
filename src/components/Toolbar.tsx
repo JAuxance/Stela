@@ -60,6 +60,18 @@ const IconFilm = svg(
     <path d="M6.7 6.4 L10.4 8 L6.7 9.6 Z" fill="currentColor" stroke="none" />
   </>,
 );
+const IconUndo = svg(
+  <>
+    <path d="M6 4.5 L3 7.5 L6 10.5" />
+    <path d="M3 7.5 H9.5 a3.5 3.5 0 0 1 0 7 H7" />
+  </>,
+);
+const IconRedo = svg(
+  <>
+    <path d="M10 4.5 L13 7.5 L10 10.5" />
+    <path d="M13 7.5 H6.5 a3.5 3.5 0 0 0 0 7 H9" />
+  </>,
+);
 
 export function Toolbar({ editor, onInsertVideo, onRecordAudio }: ToolbarProps) {
   if (!editor) return null;
@@ -90,6 +102,13 @@ export function Toolbar({ editor, onInsertVideo, onRecordAudio }: ToolbarProps) 
 
   return (
     <div className="toolbar glass">
+      <Btn run={() => editor.chain().focus().undo().run()} title="Annuler (Ctrl+Z)">
+        {IconUndo}
+      </Btn>
+      <Btn run={() => editor.chain().focus().redo().run()} title="Rétablir (Ctrl+Y)">
+        {IconRedo}
+      </Btn>
+      <span className="tb-sep" />
       <Btn on={editor.isActive("bold")} run={() => editor.chain().focus().toggleBold().run()} title="Gras">
         <b>B</b>
       </Btn>
