@@ -104,6 +104,10 @@ function demoteNode(node: JSONNode): JSONNode {
     const json = JSON.stringify({ kind: a.kind, title: a.title, labels: a.labels, values: a.values });
     return { type: "codeBlock", attrs: { language: "chart" }, content: [{ type: "text", text: json }] };
   }
+  if (node.type === "drawing") {
+    const json = JSON.stringify(node.attrs?.scene ?? {});
+    return { type: "codeBlock", attrs: { language: "excalidraw" }, content: [{ type: "text", text: json }] };
+  }
   if (node.content) return { ...node, content: node.content.map(demoteNode) };
   return node;
 }
@@ -141,6 +145,13 @@ function reviveNode(node: JSONNode): JSONNode {
             values: Array.isArray(cfg.values) ? cfg.values : [],
           },
         };
+      } catch {
+        /* leave as a normal code block */
+      }
+    }
+    if (lang === "excalidraw") {
+      try {
+        return { type: "drawing", attrs: { scene: JSON.parse(text) } };
       } catch {
         /* leave as a normal code block */
       }

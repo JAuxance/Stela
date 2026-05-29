@@ -10,6 +10,7 @@ import { AudioNote } from "./audio";
 import { ImageNode } from "./image";
 import { ChartNode } from "./chart";
 import { MermaidNode } from "./mermaid";
+import { DrawingNode } from "./drawing";
 import type { Lang } from "../../lib/language";
 
 export interface BuildOptions {
@@ -34,6 +35,7 @@ export function buildExtensions(options: BuildOptions) {
     ImageNode,
     ChartNode,
     MermaidNode,
+    DrawingNode,
     markdownExtension(),
     SmoothCaret,
     TypingInk,

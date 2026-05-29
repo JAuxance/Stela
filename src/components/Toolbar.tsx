@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { insertMathInline, insertMathBlock } from "../editor/extensions/math";
 import { insertChart } from "../editor/extensions/chart";
 import { insertMermaid } from "../editor/extensions/mermaid";
+import { insertDrawing } from "../editor/extensions/drawing";
 
 export interface ToolbarProps {
   editor: Editor | null;
@@ -84,6 +85,12 @@ const IconDiagram = svg(
     <rect x="2" y="10.5" width="4.5" height="3.2" rx="0.8" />
     <rect x="9.5" y="10.5" width="4.5" height="3.2" rx="0.8" />
     <path d="M8 4.7 V7.5 M8 7.5 H4.2 V10.5 M8 7.5 H11.8 V10.5" />
+  </>,
+);
+const IconDraw = svg(
+  <>
+    <path d="M11 2.5 13.5 5 5 13 2.5 13.5 3 11 Z" />
+    <path d="M9.5 4 12 6.5" />
   </>,
 );
 const IconUndo = svg(
@@ -181,6 +188,9 @@ export function Toolbar({ editor, onInsertImage, onInsertVideo, onRecordAudio }:
       </Btn>
       <Btn run={() => insertMermaid(editor)} title="Diagramme (Mermaid)">
         {IconDiagram}
+      </Btn>
+      <Btn run={() => insertDrawing(editor)} title="Dessin">
+        {IconDraw}
       </Btn>
       {(onInsertImage || onRecordAudio || onInsertVideo) && <span className="tb-sep" />}
       {onInsertImage && (

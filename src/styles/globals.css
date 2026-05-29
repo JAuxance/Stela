@@ -1081,6 +1081,50 @@ textarea.math-input {
   height: auto;
 }
 
+/* ---- Drawing (Excalidraw) -------------------------------------------------- */
+.drawing-svg {
+  display: flex;
+  justify-content: center;
+}
+
+.drawing-svg svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.drawing-modal {
+  width: min(1100px, calc(100vw - 32px));
+  height: min(80vh, 760px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  background: var(--bg);
+}
+
+.drawing-modal__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  font-weight: 600;
+  font-size: 14px;
+  flex: 0 0 auto;
+}
+
+.drawing-canvas {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.drawing-canvas .excalidraw {
+  height: 100%;
+}
+
 /* ---- Settings (iOS grouped list) ------------------------------------------ */
 .settings {
   display: flex;
