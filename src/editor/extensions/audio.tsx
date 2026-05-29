@@ -2,6 +2,7 @@ import { Node, mergeAttributes, type Editor } from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import { useEffect, useRef, useState } from "react";
 import { resolveDriveMediaUrl } from "../../drive/media";
+import { useI18n } from "../../i18n";
 import { NodeDelete } from "./video";
 
 const BARS = 72;
@@ -42,6 +43,7 @@ async function drawWaveform(canvas: HTMLCanvasElement, url: string) {
 }
 
 function AudioView({ node, deleteNode }: NodeViewProps) {
+  const { t } = useI18n();
   const fileId: string | null = node.attrs.fileId ?? null;
   const name: string = node.attrs.name ?? "Note vocale";
   const mime: string = node.attrs.mime ?? "audio/webm";
@@ -56,7 +58,7 @@ function AudioView({ node, deleteNode }: NodeViewProps) {
     if (!url && fileId) {
       resolveDriveMediaUrl(fileId, mime)
         .then((u) => !revoked && setUrl(u))
-        .catch(() => !revoked && setError("Impossible de charger l'audio depuis Drive."));
+        .catch(() => !revoked && setError(t("media.loadFailed")));
     }
     return () => {
       revoked = true;
@@ -83,7 +85,7 @@ function AudioView({ node, deleteNode }: NodeViewProps) {
       {url ? (
         <audio className="audio-player" src={url} controls preload="metadata" />
       ) : (
-        <div className="media-loading">{error ?? "Chargement de l'audio…"}</div>
+        <div className="media-loading">{error ?? t("media.loadingAudio")}</div>
       )}
       <div className="media-caption">{name}</div>
     </NodeViewWrapper>

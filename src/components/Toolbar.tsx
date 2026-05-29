@@ -1,5 +1,6 @@
 import type { Editor } from "@tiptap/core";
 import type { ReactNode } from "react";
+import { useI18n } from "../i18n";
 import { insertMathInline, insertMathBlock } from "../editor/extensions/math";
 import { insertChart } from "../editor/extensions/chart";
 import { insertMermaid } from "../editor/extensions/mermaid";
@@ -107,6 +108,7 @@ const IconRedo = svg(
 );
 
 export function Toolbar({ editor, onInsertImage, onInsertVideo, onRecordAudio }: ToolbarProps) {
+  const { t } = useI18n();
   if (!editor) return null;
 
   const Btn = ({
@@ -135,76 +137,76 @@ export function Toolbar({ editor, onInsertImage, onInsertVideo, onRecordAudio }:
 
   return (
     <div className="toolbar glass">
-      <Btn run={() => editor.chain().focus().undo().run()} title="Annuler (Ctrl+Z)">
+      <Btn run={() => editor.chain().focus().undo().run()} title={t("tb.undo")}>
         {IconUndo}
       </Btn>
-      <Btn run={() => editor.chain().focus().redo().run()} title="Rétablir (Ctrl+Y)">
+      <Btn run={() => editor.chain().focus().redo().run()} title={t("tb.redo")}>
         {IconRedo}
       </Btn>
       <span className="tb-sep" />
-      <Btn on={editor.isActive("bold")} run={() => editor.chain().focus().toggleBold().run()} title="Gras">
+      <Btn on={editor.isActive("bold")} run={() => editor.chain().focus().toggleBold().run()} title={t("tb.bold")}>
         <b>B</b>
       </Btn>
-      <Btn on={editor.isActive("italic")} run={() => editor.chain().focus().toggleItalic().run()} title="Italique">
+      <Btn on={editor.isActive("italic")} run={() => editor.chain().focus().toggleItalic().run()} title={t("tb.italic")}>
         <i>I</i>
       </Btn>
       <Btn
         on={editor.isActive("heading", { level: 1 })}
         run={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-        title="Titre 1"
+        title={t("tb.h1")}
       >
         H1
       </Btn>
       <Btn
         on={editor.isActive("heading", { level: 2 })}
         run={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-        title="Titre 2"
+        title={t("tb.h2")}
       >
         H2
       </Btn>
       <span className="tb-sep" />
-      <Btn on={editor.isActive("bulletList")} run={() => editor.chain().focus().toggleBulletList().run()} title="Liste">
+      <Btn on={editor.isActive("bulletList")} run={() => editor.chain().focus().toggleBulletList().run()} title={t("tb.list")}>
         {IconList}
       </Btn>
-      <Btn on={editor.isActive("taskList")} run={() => editor.chain().focus().toggleTaskList().run()} title="Tâches">
+      <Btn on={editor.isActive("taskList")} run={() => editor.chain().focus().toggleTaskList().run()} title={t("tb.tasks")}>
         {IconTask}
       </Btn>
-      <Btn on={editor.isActive("blockquote")} run={() => editor.chain().focus().toggleBlockquote().run()} title="Citation">
+      <Btn on={editor.isActive("blockquote")} run={() => editor.chain().focus().toggleBlockquote().run()} title={t("tb.quote")}>
         {IconQuote}
       </Btn>
-      <Btn on={editor.isActive("codeBlock")} run={() => editor.chain().focus().toggleCodeBlock().run()} title="Bloc de code">
+      <Btn on={editor.isActive("codeBlock")} run={() => editor.chain().focus().toggleCodeBlock().run()} title={t("tb.code")}>
         <span style={{ fontFamily: "monospace", fontSize: 12 }}>{"</>"}</span>
       </Btn>
       <span className="tb-sep" />
-      <Btn run={() => insertMathInline(editor)} title="Formule en ligne ($…$)">
+      <Btn run={() => insertMathInline(editor)} title={t("tb.mathInline")}>
         <span style={{ fontStyle: "italic" }}>Σ</span>
       </Btn>
-      <Btn run={() => insertMathBlock(editor)} title="Bloc formule ($$…$$)">
+      <Btn run={() => insertMathBlock(editor)} title={t("tb.mathBlock")}>
         <span style={{ fontStyle: "italic" }}>Σ</span>
         <span style={{ fontSize: 10, opacity: 0.7 }}>=</span>
       </Btn>
-      <Btn run={() => insertChart(editor)} title="Graphique (données)">
+      <Btn run={() => insertChart(editor)} title={t("tb.chart")}>
         {IconChart}
       </Btn>
-      <Btn run={() => insertMermaid(editor)} title="Diagramme (Mermaid)">
+      <Btn run={() => insertMermaid(editor)} title={t("tb.diagram")}>
         {IconDiagram}
       </Btn>
-      <Btn run={() => insertDrawing(editor)} title="Dessin">
+      <Btn run={() => insertDrawing(editor)} title={t("tb.drawing")}>
         {IconDraw}
       </Btn>
       {(onInsertImage || onRecordAudio || onInsertVideo) && <span className="tb-sep" />}
       {onInsertImage && (
-        <Btn run={onInsertImage} title="Insérer une image">
+        <Btn run={onInsertImage} title={t("tb.image")}>
           {IconImage}
         </Btn>
       )}
       {onRecordAudio && (
-        <Btn run={onRecordAudio} title="Note vocale">
+        <Btn run={onRecordAudio} title={t("tb.voice")}>
           {IconMic}
         </Btn>
       )}
       {onInsertVideo && (
-        <Btn run={onInsertVideo} title="Insérer une vidéo">
+        <Btn run={onInsertVideo} title={t("tb.video")}>
           {IconFilm}
         </Btn>
       )}

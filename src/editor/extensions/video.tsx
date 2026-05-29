@@ -2,6 +2,7 @@ import { Node, mergeAttributes, type Editor } from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import { useEffect, useState } from "react";
 import { resolveDriveMediaUrl } from "../../drive/media";
+import { useI18n } from "../../i18n";
 
 export function NodeDelete({ onDelete }: { onDelete: () => void }) {
   return (
@@ -22,6 +23,7 @@ export function NodeDelete({ onDelete }: { onDelete: () => void }) {
 }
 
 function VideoView({ node, deleteNode }: NodeViewProps) {
+  const { t } = useI18n();
   const provider: string = node.attrs.provider ?? "url";
   const src: string = node.attrs.src ?? "";
   const fileId: string | null = node.attrs.fileId ?? null;
@@ -37,7 +39,7 @@ function VideoView({ node, deleteNode }: NodeViewProps) {
     if (provider === "drive" && !url && fileId) {
       resolveDriveMediaUrl(fileId, mime)
         .then((u) => !revoked && setUrl(u))
-        .catch(() => !revoked && setError("Impossible de charger la vidéo depuis Drive."));
+        .catch(() => !revoked && setError(t("media.loadFailed")));
     }
     return () => {
       revoked = true;
@@ -60,7 +62,7 @@ function VideoView({ node, deleteNode }: NodeViewProps) {
       ) : url ? (
         <video className="media-video" src={url} controls preload="metadata" />
       ) : (
-        <div className="media-loading">{error ?? "Chargement de la vidéo…"}</div>
+        <div className="media-loading">{error ?? t("media.loadingVideo")}</div>
       )}
       <div className="media-caption">{name}</div>
     </NodeViewWrapper>

@@ -1,3 +1,5 @@
+import { useI18n } from "../i18n";
+
 export interface TabItem {
   id: string;
   name: string;
@@ -12,31 +14,32 @@ export interface TabsProps {
 }
 
 export function Tabs({ tabs, activeId, onSelect, onClose, onNew }: TabsProps) {
+  const { t } = useI18n();
   if (tabs.length === 0) return null;
   return (
     <div className="tabs glass">
       <div className="tabs__strip">
-        {tabs.map((t) => (
+        {tabs.map((tab) => (
           <div
-            key={t.id}
-            className={`tab${t.id === activeId ? " tab--active" : ""}`}
+            key={tab.id}
+            className={`tab${tab.id === activeId ? " tab--active" : ""}`}
             onMouseDown={(e) => {
               // middle-click closes, like a browser
               if (e.button === 1) {
                 e.preventDefault();
-                onClose(t.id);
+                onClose(tab.id);
               }
             }}
           >
-            <button className="tab__label" title={t.name} onClick={() => onSelect(t.id)}>
-              {t.name.replace(/\.md$/i, "") || "Sans titre"}
+            <button className="tab__label" title={tab.name} onClick={() => onSelect(tab.id)}>
+              {tab.name.replace(/\.md$/i, "") || t("note.untitled")}
             </button>
             <button
               className="tab__close"
-              aria-label="Fermer l'onglet"
+              aria-label={t("tabs.close")}
               onClick={(e) => {
                 e.stopPropagation();
-                onClose(t.id);
+                onClose(tab.id);
               }}
             >
               <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
@@ -46,7 +49,7 @@ export function Tabs({ tabs, activeId, onSelect, onClose, onNew }: TabsProps) {
           </div>
         ))}
       </div>
-      <button className="tab__new" aria-label="Nouvel onglet" title="Nouvelle note" onClick={onNew}>
+      <button className="tab__new" aria-label={t("tabs.new")} title={t("tabs.new")} onClick={onNew}>
         <svg width="13" height="13" viewBox="0 0 14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
           <path d="M7 2.5 V11.5 M2.5 7 H11.5" />
         </svg>

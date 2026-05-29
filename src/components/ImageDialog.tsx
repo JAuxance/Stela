@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Overlay } from "./VideoDialog";
 import { uploadBlob, cacheBlobUrl } from "../drive/media";
+import { useI18n } from "../i18n";
 import type { ImageAttrs } from "../editor/extensions/image";
 
 export interface ImageDialogProps {
@@ -10,6 +11,7 @@ export interface ImageDialogProps {
 }
 
 export function ImageDialog({ canUpload, onInsert, onClose }: ImageDialogProps) {
+  const { t } = useI18n();
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -33,14 +35,14 @@ export function ImageDialog({ canUpload, onInsert, onClose }: ImageDialogProps) 
       onInsert({ src: objectUrl, fileId, alt: file.name, mime: file.type || "image/png" });
       onClose();
     } catch (e2) {
-      setErr(`Échec de l'upload : ${String(e2)}`);
+      setErr(`${t("upload.fail")} ${String(e2)}`);
       setBusy(false);
     }
   };
 
   return (
-    <Overlay onClose={onClose} title="Insérer une image">
-      <label className="dialog-label">Lien de l'image (URL)</label>
+    <Overlay onClose={onClose} title={t("image.title")}>
+      <label className="dialog-label">{t("image.urlLabel")}</label>
       <div className="dialog-row">
         <input
           className="dialog-input"
@@ -51,7 +53,7 @@ export function ImageDialog({ canUpload, onInsert, onClose }: ImageDialogProps) 
           onKeyDown={(e) => e.key === "Enter" && addUrl()}
         />
         <button className="btn btn--primary" onClick={addUrl} disabled={!url.trim()}>
-          Insérer
+          {t("action.insert")}
         </button>
       </div>
 
@@ -59,11 +61,11 @@ export function ImageDialog({ canUpload, onInsert, onClose }: ImageDialogProps) 
 
       {canUpload ? (
         <label className={`btn${busy ? " is-busy" : ""}`} style={{ width: "100%", cursor: "pointer" }}>
-          {busy ? "Upload en cours…" : "📁 Choisir une image (uploadée sur Drive)"}
+          {busy ? t("video.uploading") : `📁 ${t("image.pick")}`}
           <input type="file" accept="image/*" hidden disabled={busy} onChange={onFile} />
         </label>
       ) : (
-        <p className="dialog-hint">Connecte Google Drive pour uploader une image locale.</p>
+        <p className="dialog-hint">{t("image.needConnect")}</p>
       )}
 
       {err && <p className="dialog-hint" style={{ color: "var(--danger)" }}>{err}</p>}

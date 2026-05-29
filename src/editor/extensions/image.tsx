@@ -2,9 +2,11 @@ import { Node, mergeAttributes, type Editor } from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import { useEffect, useState } from "react";
 import { resolveDriveMediaUrl } from "../../drive/media";
+import { useI18n } from "../../i18n";
 import { NodeDelete } from "./video";
 
 function ImageView({ node, deleteNode }: NodeViewProps) {
+  const { t } = useI18n();
   const src: string = node.attrs.src ?? "";
   const fileId: string | null = node.attrs.fileId ?? null;
   const alt: string = node.attrs.alt ?? "";
@@ -18,7 +20,7 @@ function ImageView({ node, deleteNode }: NodeViewProps) {
     if (!url && fileId) {
       resolveDriveMediaUrl(fileId, mime)
         .then((u) => !revoked && setUrl(u))
-        .catch(() => !revoked && setError("Impossible de charger l'image depuis Drive."));
+        .catch(() => !revoked && setError(t("media.loadFailed")));
     }
     return () => {
       revoked = true;
@@ -32,7 +34,7 @@ function ImageView({ node, deleteNode }: NodeViewProps) {
       {url ? (
         <img className="media-img" src={url} alt={alt} />
       ) : (
-        <div className="media-loading">{error ?? "Chargement de l'image…"}</div>
+        <div className="media-loading">{error ?? t("media.loadingImage")}</div>
       )}
       {alt && <div className="media-caption">{alt}</div>}
     </NodeViewWrapper>

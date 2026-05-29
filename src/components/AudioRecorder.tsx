@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { uploadBlob, cacheBlobUrl } from "../drive/media";
 import { Overlay } from "./VideoDialog";
+import { useI18n } from "../i18n";
 import type { AudioAttrs } from "../editor/extensions/audio";
 
 type Phase = "starting" | "recording" | "saving" | "error";
@@ -17,6 +18,7 @@ export interface AudioRecorderProps {
 }
 
 export function AudioRecorder({ onInsert, onClose }: AudioRecorderProps) {
+  const { t } = useI18n();
   const [phase, setPhase] = useState<Phase>("starting");
   const [seconds, setSeconds] = useState(0);
   const [err, setErr] = useState("");
@@ -43,7 +45,7 @@ export function AudioRecorder({ onInsert, onClose }: AudioRecorderProps) {
       onInsert({ fileId, src: objectUrl, name, mime });
       onClose();
     } catch (e) {
-      setErr(`Échec de l'enregistrement sur Drive : ${String(e)}`);
+      setErr(`${t("audio.saveError")} ${String(e)}`);
       setPhase("error");
     }
   };
@@ -72,7 +74,7 @@ export function AudioRecorder({ onInsert, onClose }: AudioRecorderProps) {
       setPhase("recording");
       timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
     } catch (e) {
-      setErr(`Micro indisponible : ${String(e)}`);
+      setErr(`${t("audio.micError")} ${String(e)}`);
       setPhase("error");
     }
   };
@@ -90,7 +92,7 @@ export function AudioRecorder({ onInsert, onClose }: AudioRecorderProps) {
   }, []);
 
   return (
-    <Overlay title="Note vocale" onClose={() => { cleanup(); onClose(); }}>
+    <Overlay title={t("audio.title")} onClose={() => { cleanup(); onClose(); }}>
       <div className="recorder">
         {phase === "recording" && (
           <>
@@ -99,17 +101,17 @@ export function AudioRecorder({ onInsert, onClose }: AudioRecorderProps) {
               <span className="recorder-time">{fmt(seconds)}</span>
             </div>
             <button className="btn btn--primary" onClick={stop}>
-              Arrêter et enregistrer
+              {t("audio.stop")}
             </button>
           </>
         )}
-        {phase === "starting" && <p className="dialog-hint">Autorise le micro pour démarrer…</p>}
-        {phase === "saving" && <p className="dialog-hint">Enregistrement sur Drive…</p>}
+        {phase === "starting" && <p className="dialog-hint">{t("audio.start")}</p>}
+        {phase === "saving" && <p className="dialog-hint">{t("audio.saving")}</p>}
         {phase === "error" && (
           <>
             <p className="dialog-hint" style={{ color: "var(--danger)" }}>{err}</p>
             <button className="btn" onClick={start}>
-              Réessayer
+              {t("action.retryShort")}
             </button>
           </>
         )}

@@ -4,9 +4,11 @@ import { Sidebar } from "./components/Sidebar";
 import { StatusBar } from "./components/StatusBar";
 import { Settings } from "./components/Settings";
 import { Tabs } from "./components/Tabs";
+import { FirstRunLanguage } from "./components/FirstRunLanguage";
 import { Editor } from "./editor/Editor";
 import { useDriveSync } from "./drive/syncEngine";
 import { resolvedLang, LANG_CHANGED_EVENT } from "./lib/language";
+import { useI18n, hasUiLang } from "./i18n";
 
 function countWords(md: string): number {
   return (md.match(/[\p{L}\p{N}]+/gu) ?? []).length;
@@ -14,10 +16,12 @@ function countWords(md: string): number {
 
 export function App() {
   const sync = useDriveSync();
+  const { t, setLang: setUiLang } = useI18n();
   const [words, setWords] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [lang, setLang] = useState(resolvedLang());
   const [openIds, setOpenIds] = useState<string[]>([]);
+  const [needLang, setNeedLang] = useState(!hasUiLang());
 
   useEffect(() => {
     const onLang = () => setLang(resolvedLang());
@@ -74,7 +78,7 @@ export function App() {
           onSelect={(id) => void sync.selectNote(id)}
           onNew={() => void sync.newNote()}
           onDelete={(id) => {
-            if (window.confirm("Supprimer définitivement cette note de Google Drive ?")) {
+            if (window.confirm(t("confirm.deleteNote"))) {
               setOpenIds((ids) => ids.filter((x) => x !== id));
               void sync.removeNote(id);
             }
@@ -95,40 +99,29 @@ export function App() {
             />
           )}
 
-          {!sync.hasCreds && (
-            <Banner tone="info">
-              Google Drive n'est pas configuré (fichier <code>.env</code>). Tu peux écrire un
-              brouillon local ; configure tes identifiants pour sauvegarder. Voir le README.
-            </Banner>
-          )}
+          {!sync.hasCreds && <Banner tone="info">{t("banner.noEnv")}</Banner>}
 
-          {sync.status === "connecting" && (
-            <Banner tone="info">Connexion à Google Drive… termine l'autorisation dans ton navigateur.</Banner>
-          )}
+          {sync.status === "connecting" && <Banner tone="info">{t("banner.connecting")}</Banner>}
 
           {sync.status === "error" && (
             <Banner tone="warn">
               <span style={{ flex: 1, minWidth: 200, wordBreak: "break-word" }}>
-                {sync.lastError ?? "Erreur de synchronisation."}
+                {sync.lastError ?? t("banner.error")}
               </span>
               <button className="btn" style={{ height: 30 }} onClick={sync.connect}>
-                Réessayer la connexion
+                {t("action.retry")}
               </button>
             </Banner>
           )}
 
           {sync.status === "conflict" && (
             <Banner tone="warn">
-              Cette note a été modifiée ailleurs.
+              {t("conflict.message")}
               <button className="btn" style={{ height: 30 }} onClick={() => void sync.resolveConflict()}>
-                Recharger depuis Drive
+                {t("conflict.reload")}
               </button>
-              <button
-                className="btn"
-                style={{ height: 30 }}
-                onClick={() => void sync.keepLocal()}
-              >
-                Écraser avec ma version
+              <button className="btn" style={{ height: 30 }} onClick={() => void sync.keepLocal()}>
+                {t("conflict.keepLocal")}
               </button>
             </Banner>
           )}
@@ -156,6 +149,15 @@ export function App() {
           }}
           onSignOut={() => void sync.disconnect()}
           onClose={() => setSettingsOpen(false)}
+        />
+      )}
+
+      {needLang && (
+        <FirstRunLanguage
+          onPick={(l) => {
+            setUiLang(l);
+            setNeedLang(false);
+          }}
         />
       )}
     </div>

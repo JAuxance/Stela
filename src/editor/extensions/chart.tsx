@@ -3,6 +3,7 @@ import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tip
 import { useEffect, useRef, useState } from "react";
 import { Chart, registerables } from "chart.js";
 import { NodeDelete } from "./video";
+import { useI18n } from "../../i18n";
 
 Chart.register(...registerables);
 
@@ -64,6 +65,7 @@ function buildConfig(kind: Kind, title: string, labels: string[], values: number
 }
 
 function ChartView({ node, updateAttributes, deleteNode }: NodeViewProps) {
+  const { t } = useI18n();
   const kind: Kind = node.attrs.kind ?? "bar";
   const title: string = node.attrs.title ?? "";
   const labels: string[] = node.attrs.labels ?? [];
@@ -100,15 +102,15 @@ function ChartView({ node, updateAttributes, deleteNode }: NodeViewProps) {
         <div className="chart-edit">
           <div className="chart-edit-row">
             <select className="settings-select" value={draftKind} onChange={(e) => setDraftKind(e.target.value as Kind)}>
-              <option value="bar">Barres</option>
-              <option value="line">Lignes</option>
-              <option value="pie">Camembert</option>
-              <option value="doughnut">Anneau</option>
-              <option value="radar">Radar</option>
+              <option value="bar">{t("chart.bar")}</option>
+              <option value="line">{t("chart.line")}</option>
+              <option value="pie">{t("chart.pie")}</option>
+              <option value="doughnut">{t("chart.doughnut")}</option>
+              <option value="radar">{t("chart.radar")}</option>
             </select>
             <input
               className="dialog-input"
-              placeholder="Titre du graphique"
+              placeholder={t("chart.titlePlaceholder")}
               value={draftTitle}
               onChange={(e) => setDraftTitle(e.target.value)}
             />
@@ -116,13 +118,13 @@ function ChartView({ node, updateAttributes, deleteNode }: NodeViewProps) {
           <textarea
             className="chart-data"
             rows={5}
-            placeholder={"Une ligne par valeur :\nJanvier, 12\nFévrier, 19\nMars, 7"}
+            placeholder={t("chart.dataPlaceholder")}
             value={draftData}
             onChange={(e) => setDraftData(e.target.value)}
           />
           <div className="chart-edit-actions">
             <button className="btn btn--primary settings-btn" onClick={commit}>
-              Afficher
+              {t("action.show")}
             </button>
           </div>
         </div>

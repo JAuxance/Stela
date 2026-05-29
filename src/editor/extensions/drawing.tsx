@@ -2,6 +2,7 @@ import { Node, mergeAttributes, type Editor } from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import { Suspense, lazy, useEffect, useRef, useState, type ComponentType } from "react";
 import { NodeDelete } from "./video";
+import { useI18n } from "../../i18n";
 
 // Heavy: only fetched when a drawing is actually edited.
 const ExcalidrawCanvas = lazy(async () => {
@@ -20,6 +21,7 @@ function isDark(): boolean {
 }
 
 function DrawingView({ node, updateAttributes, deleteNode }: NodeViewProps) {
+  const { t } = useI18n();
   const scene: Scene | null = node.attrs.scene ?? null;
   const hasContent = (scene?.elements?.length ?? 0) > 0;
   const [editing, setEditing] = useState(!hasContent);
@@ -80,25 +82,25 @@ function DrawingView({ node, updateAttributes, deleteNode }: NodeViewProps) {
       {svg ? (
         <div className="drawing-svg" dangerouslySetInnerHTML={{ __html: svg }} />
       ) : (
-        <div className="media-loading">Dessin vide — clique sur ✎ pour dessiner.</div>
+        <div className="media-loading">{t("draw.empty")}</div>
       )}
 
       {editing && (
         <div className="overlay" onMouseDown={(e) => e.stopPropagation()}>
           <div className="drawing-modal glass">
             <div className="drawing-modal__bar">
-              <span>Dessin</span>
+              <span>{t("draw.title")}</span>
               <div style={{ display: "flex", gap: 8 }}>
                 <button className="btn" onClick={() => setEditing(false)}>
-                  Annuler
+                  {t("action.cancel")}
                 </button>
                 <button className="btn btn--primary" onClick={save}>
-                  Enregistrer
+                  {t("action.save")}
                 </button>
               </div>
             </div>
             <div className="drawing-canvas">
-              <Suspense fallback={<div className="media-loading">Chargement de l'éditeur de dessin…</div>}>
+              <Suspense fallback={<div className="media-loading">{t("draw.loading")}</div>}>
                 <ExcalidrawCanvas
                   excalidrawAPI={(api: unknown) => {
                     apiRef.current = api;

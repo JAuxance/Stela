@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { toEmbed, uploadBlob, cacheBlobUrl } from "../drive/media";
+import { useI18n } from "../i18n";
 import type { VideoAttrs } from "../editor/extensions/video";
 
 export interface VideoDialogProps {
@@ -9,6 +10,7 @@ export interface VideoDialogProps {
 }
 
 export function VideoDialog({ canUpload, onInsert, onClose }: VideoDialogProps) {
+  const { t } = useI18n();
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -39,14 +41,14 @@ export function VideoDialog({ canUpload, onInsert, onClose }: VideoDialogProps) 
       });
       onClose();
     } catch (e2) {
-      setErr(`Échec de l'upload : ${String(e2)}`);
+      setErr(`${t("upload.fail")} ${String(e2)}`);
       setBusy(false);
     }
   };
 
   return (
-    <Overlay onClose={onClose} title="Insérer une vidéo">
-      <label className="dialog-label">Lien (YouTube, Vimeo, .mp4)</label>
+    <Overlay onClose={onClose} title={t("video.title")}>
+      <label className="dialog-label">{t("video.urlLabel")}</label>
       <div className="dialog-row">
         <input
           className="dialog-input"
@@ -57,7 +59,7 @@ export function VideoDialog({ canUpload, onInsert, onClose }: VideoDialogProps) 
           onKeyDown={(e) => e.key === "Enter" && addUrl()}
         />
         <button className="btn btn--primary" onClick={addUrl} disabled={!url.trim()}>
-          Insérer
+          {t("action.insert")}
         </button>
       </div>
 
@@ -65,11 +67,11 @@ export function VideoDialog({ canUpload, onInsert, onClose }: VideoDialogProps) 
 
       {canUpload ? (
         <label className={`btn${busy ? " is-busy" : ""}`} style={{ width: "100%", cursor: "pointer" }}>
-          {busy ? "Upload en cours…" : "📁 Choisir une vidéo (uploadée sur Drive)"}
+          {busy ? t("video.uploading") : `📁 ${t("video.pick")}`}
           <input type="file" accept="video/*" hidden disabled={busy} onChange={onFile} />
         </label>
       ) : (
-        <p className="dialog-hint">Connecte Google Drive pour uploader un fichier vidéo local.</p>
+        <p className="dialog-hint">{t("video.needConnect")}</p>
       )}
 
       {err && <p className="dialog-hint" style={{ color: "var(--danger)" }}>{err}</p>}

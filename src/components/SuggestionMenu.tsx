@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useI18n } from "../i18n";
 
 export interface SuggestionMenuProps {
   x: number;
@@ -23,6 +24,7 @@ export function SuggestionMenu({
   onAdd,
   onClose,
 }: SuggestionMenuProps) {
+  const { t } = useI18n();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -46,7 +48,7 @@ export function SuggestionMenu({
     <div className="menu" style={{ left, top }} ref={ref}>
       <div className="menu__label">« {word} »</div>
       {loading ? (
-        <div className="menu__item menu__item--muted">Recherche…</div>
+        <div className="menu__item menu__item--muted">{t("spell.searching")}</div>
       ) : suggestions.length > 0 ? (
         suggestions.map((s) => (
           <button key={s} className="menu__item" onClick={() => onReplace(s)}>
@@ -54,14 +56,14 @@ export function SuggestionMenu({
           </button>
         ))
       ) : (
-        <div className="menu__item menu__item--muted">Aucune suggestion</div>
+        <div className="menu__item menu__item--muted">{t("spell.none")}</div>
       )}
       <div className="menu__sep" />
       <button className="menu__item menu__item--muted" onClick={onIgnore}>
-        Ignorer
+        {t("spell.ignore")}
       </button>
       <button className="menu__item menu__item--muted" onClick={onAdd}>
-        Ajouter au dictionnaire
+        {t("spell.add")}
       </button>
     </div>
   );

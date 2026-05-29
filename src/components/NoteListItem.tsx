@@ -1,15 +1,16 @@
-export function formatRelative(iso?: string): string {
+import { useI18n, type TFn } from "../i18n";
+
+function formatRelative(iso: string | undefined, t: TFn): string {
   if (!iso) return "";
   const then = new Date(iso).getTime();
   if (Number.isNaN(then)) return "";
-  const diff = Date.now() - then;
-  const min = Math.round(diff / 60000);
-  if (min < 1) return "à l'instant";
-  if (min < 60) return `il y a ${min} min`;
+  const min = Math.round((Date.now() - then) / 60000);
+  if (min < 1) return t("time.now");
+  if (min < 60) return t("time.min", { n: min });
   const h = Math.round(min / 60);
-  if (h < 24) return `il y a ${h} h`;
+  if (h < 24) return t("time.hour", { n: h });
   const d = Math.round(h / 24);
-  if (d < 7) return `il y a ${d} j`;
+  if (d < 7) return t("time.day", { n: d });
   return new Date(then).toLocaleDateString();
 }
 
@@ -22,17 +23,18 @@ export interface NoteListItemProps {
 }
 
 export function NoteListItem({ name, modifiedTime, active, onClick, onDelete }: NoteListItemProps) {
+  const { t } = useI18n();
   return (
     <div className={`note-item${active ? " note-item--active" : ""}`}>
       <button className="note-item__main" onClick={onClick} title={name}>
-        <span className="note-item__name">{name.replace(/\.md$/i, "") || "Sans titre"}</span>
-        <span className="note-item__meta">{formatRelative(modifiedTime)}</span>
+        <span className="note-item__name">{name.replace(/\.md$/i, "") || t("note.untitled")}</span>
+        <span className="note-item__meta">{formatRelative(modifiedTime, t)}</span>
       </button>
       {onDelete && (
         <button
           className="note-item__del"
-          aria-label="Supprimer la note"
-          title="Supprimer"
+          aria-label={t("note.deleteAria")}
+          title={t("action.delete")}
           onClick={(e) => {
             e.stopPropagation();
             onDelete();

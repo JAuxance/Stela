@@ -3,6 +3,7 @@ import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tip
 import { useEffect, useRef, useState } from "react";
 import mermaid from "mermaid";
 import { NodeDelete } from "./video";
+import { useI18n } from "../../i18n";
 
 const STARTER = "graph TD\n  A[Début] --> B{Choix}\n  B -->|Oui| C[OK]\n  B -->|Non| D[Stop]";
 
@@ -11,6 +12,7 @@ function isDark(): boolean {
 }
 
 function MermaidView({ node, updateAttributes, deleteNode }: NodeViewProps) {
+  const { t } = useI18n();
   const code: string = node.attrs.code ?? "";
   const [editing, setEditing] = useState(code.trim() === "");
   const [draft, setDraft] = useState(code || STARTER);
@@ -53,7 +55,7 @@ function MermaidView({ node, updateAttributes, deleteNode }: NodeViewProps) {
         />
         <div className="chart-edit-actions">
           <button className="btn btn--primary settings-btn" onClick={commit}>
-            Afficher
+            {t("action.show")}
           </button>
         </div>
       </NodeViewWrapper>

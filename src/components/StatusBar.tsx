@@ -1,16 +1,6 @@
 import type { SyncStatus } from "../drive/types";
 import { LANG_LABEL, type Lang } from "../lib/language";
-
-const STATUS_TEXT: Record<SyncStatus, string> = {
-  offline: "Hors ligne (brouillon local)",
-  connecting: "Connexion…",
-  idle: "Prêt",
-  loading: "Chargement…",
-  saving: "Enregistrement…",
-  saved: "Enregistré sur Drive",
-  error: "Erreur de synchro",
-  conflict: "Conflit — note modifiée ailleurs",
-};
+import { useI18n } from "../i18n";
 
 function dotClass(status: SyncStatus): string {
   if (status === "saved" || status === "idle") return "statusbar__dot statusbar__dot--ok";
@@ -26,14 +16,15 @@ export interface StatusBarProps {
 }
 
 export function StatusBar({ status, lang, words }: StatusBarProps) {
+  const { t } = useI18n();
   return (
     <div className="statusbar glass">
       <span className={dotClass(status)} />
-      <span>{STATUS_TEXT[status]}</span>
+      <span>{t(`status.${status}`)}</span>
       <span className="statusbar__spacer" />
-      <span>{words} mots</span>
+      <span>{t("status.words", { n: words })}</span>
       <span>·</span>
-      <span title="Langue de correction détectée">{LANG_LABEL[lang]}</span>
+      <span title="Spellcheck language">{LANG_LABEL[lang]}</span>
     </div>
   );
 }

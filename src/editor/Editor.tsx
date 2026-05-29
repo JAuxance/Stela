@@ -14,6 +14,7 @@ import { insertAudio } from "./extensions/audio";
 import { insertImage } from "./extensions/image";
 import { addWord, suggest } from "../spellcheck/proofreader";
 import { resolvedLang } from "../lib/language";
+import { useI18n } from "../i18n";
 
 interface MenuState extends SpellContextInfo {
   suggestions: string[];
@@ -43,6 +44,7 @@ export function Editor({
   const [videoOpen, setVideoOpen] = useState(false);
   const [recOpen, setRecOpen] = useState(false);
   const [imageOpen, setImageOpen] = useState(false);
+  const { t } = useI18n();
   const lang = resolvedLang();
 
   const handleContextMenu = useCallback((info: SpellContextInfo) => {
@@ -62,7 +64,7 @@ export function Editor({
           spellcheck: "false",
           autocorrect: "off",
           autocapitalize: "off",
-          "aria-label": "Éditeur de note",
+          "aria-label": t("editor.aria"),
         },
       },
       onUpdate: ({ editor }) => onChange(getMarkdown(editor)),

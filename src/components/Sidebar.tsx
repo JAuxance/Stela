@@ -1,4 +1,5 @@
 import { NoteListItem } from "./NoteListItem";
+import { useI18n } from "../i18n";
 import type { NoteRef } from "../drive/types";
 
 export interface SidebarProps {
@@ -26,17 +27,18 @@ export function Sidebar({
   onSignOut,
   onOpenSettings,
 }: SidebarProps) {
+  const { t } = useI18n();
   return (
     <aside className="sidebar glass">
       <div className="sidebar__head">
-        <span className="sidebar__title">Notes</span>
+        <span className="sidebar__title">{t("sidebar.notes")}</span>
         <div style={{ display: "flex", gap: 6 }}>
-          <button className="icon-btn" aria-label="Nouvelle note" onClick={onNew} disabled={busy}>
+          <button className="icon-btn" aria-label={t("action.newNote")} onClick={onNew} disabled={busy}>
             <svg width="15" height="15" viewBox="0 0 15 15">
               <path d="M7.5 2 V13 M2 7.5 H13" stroke="currentColor" strokeWidth="1.4" />
             </svg>
           </button>
-          <button className="icon-btn" aria-label="Réglages" title="Réglages" onClick={onOpenSettings}>
+          <button className="icon-btn" aria-label={t("action.settings")} title={t("action.settings")} onClick={onOpenSettings}>
             <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4">
               <circle cx="8" cy="8" r="2.2" />
               <path d="M8 1.6v1.8M8 12.6v1.8M1.6 8h1.8M12.6 8h1.8M3.5 3.5l1.3 1.3M11.2 11.2l1.3 1.3M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3" strokeLinecap="round" />
@@ -48,7 +50,7 @@ export function Sidebar({
       <div className="note-list">
         {notes.length === 0 ? (
           <p className="note-item__meta" style={{ padding: "8px 11px" }}>
-            {connected ? "Aucune note. Crée la première avec +." : "Connecte Drive pour voir tes notes."}
+            {connected ? t("sidebar.emptyConnected") : t("sidebar.emptyDisconnected")}
           </p>
         ) : (
           notes.map((n) => (
@@ -67,12 +69,12 @@ export function Sidebar({
       <div className="sidebar__footer">
         {connected ? (
           <button className="btn" style={{ width: "100%" }} onClick={onSignOut}>
-            Déconnecter Drive
+            {t("action.disconnect")}
           </button>
         ) : (
           <button className="btn btn--primary" style={{ width: "100%" }} onClick={onConnect}>
             <GoogleGlyph />
-            Connecter Google Drive
+            {t("action.connect")}
           </button>
         )}
       </div>
