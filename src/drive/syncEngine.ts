@@ -31,6 +31,8 @@ export interface DriveSync {
   resolveConflict: () => Promise<void>;
   /** Overwrite Drive with the local version, resolving a conflict in our favor. */
   keepLocal: () => Promise<void>;
+  /** Human-readable detail of the last failure (for the error banner). */
+  lastError: string | null;
 }
 
 function isConflict(err: unknown): boolean {
@@ -47,6 +49,7 @@ export function useDriveSync(): DriveSync {
   const [activeName, setActiveName] = useState("Brouillon");
   const [initialMarkdown, setInitialMarkdown] = useState(DRAFT_TEMPLATE);
   const [nonce, setNonce] = useState(0);
+  const [lastError, setLastError] = useState<string | null>(null);
 
   // Refs mirror state for use inside async callbacks / intervals.
   const connectedRef = useRef(false);
@@ -228,8 +231,12 @@ export function useDriveSync(): DriveSync {
   // --- connect / disconnect -------------------------------------------------
   const connect = useCallback(() => {
     if (!hasCreds) return;
+    setLastError(null);
     setStatus("connecting");
-    void drive.startGoogleAuth().catch(() => setStatus("error"));
+    void drive.startGoogleAuth().catch((e) => {
+      setLastError(String(e?.message ?? e));
+      setStatus("error");
+    });
   }, [hasCreds]);
 
   const disconnect = useCallback(async () => {
@@ -276,6 +283,7 @@ export function useDriveSync(): DriveSync {
           }
         } else {
           console.error("Google auth failed:", error);
+          setLastError(error ?? "échec de l'authentification Google");
           setStatus("error");
         }
       });
@@ -334,5 +342,6 @@ export function useDriveSync(): DriveSync {
     onContentChange,
     resolveConflict,
     keepLocal,
+    lastError,
   };
 }

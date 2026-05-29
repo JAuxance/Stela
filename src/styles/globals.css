@@ -57,9 +57,10 @@ body,
 }
 
 body {
-  /* Transparent so the native Mica/Acrylic shows through on Windows 11.
-     The app surface below provides the glass look on every engine. */
-  background: transparent;
+  /* Opaque window. The iOS-style "frosted glass" look comes from the .glass
+     panels (blur + translucency) layered over this solid surface — not from a
+     see-through window. */
+  background: var(--bg);
   color: var(--text);
   font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -79,23 +80,17 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: linear-gradient(var(--bg), var(--bg-deep));
+  /* Solid, subtly graded base — iOS "system background". */
+  background:
+    radial-gradient(120% 80% at 100% 0%, color-mix(in srgb, var(--accent) 5%, var(--bg)), transparent 60%),
+    linear-gradient(var(--bg), var(--bg-deep));
 }
 
-@supports (backdrop-filter: blur(1px)) {
-  /* When compositor blur is available we lighten the surface so Mica/blur reads. */
-  .app-surface {
-    background: linear-gradient(
-      color-mix(in srgb, var(--bg) 78%, transparent),
-      color-mix(in srgb, var(--bg-deep) 78%, transparent)
-    );
-  }
-}
-
+/* iOS-style frosted glass: translucent + blurred over the solid surface. */
 .glass {
   background: var(--glass);
-  backdrop-filter: saturate(140%) blur(22px);
-  -webkit-backdrop-filter: saturate(140%) blur(22px);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
 
 /* ---- Titlebar -------------------------------------------------------------- */
@@ -580,4 +575,264 @@ body {
 
 .note-title::placeholder {
   color: var(--text-faint);
+}
+
+/* ---- Editor toolbar -------------------------------------------------------- */
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+  padding: 6px;
+  margin-bottom: 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.tb-btn {
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  border: 0;
+  background: transparent;
+  color: var(--text-soft);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13.5px;
+  display: inline-grid;
+  place-items: center;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.tb-btn:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.tb-btn.is-on {
+  background: var(--active);
+  color: var(--text);
+}
+
+.tb-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--line);
+  margin: 0 5px;
+}
+
+/* ---- Math (KaTeX) ---------------------------------------------------------- */
+.math-node {
+  cursor: pointer;
+}
+
+.math-node.is-block {
+  display: block;
+  text-align: center;
+  margin: 0.6em 0;
+  padding: 6px 0;
+}
+
+.math-node.is-selected {
+  outline: 2px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  border-radius: 6px;
+}
+
+.math-input {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.9em;
+  background: var(--hover);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  padding: 2px 7px;
+  color: var(--text);
+  outline: none;
+}
+
+textarea.math-input {
+  width: 100%;
+  resize: vertical;
+}
+
+.katex {
+  color: var(--text);
+}
+
+/* ---- Media nodes (video / audio) ------------------------------------------ */
+.media-node {
+  margin: 0.8em 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px;
+  background: var(--hover);
+}
+
+.media-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.media-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.media-video {
+  width: 100%;
+  border-radius: 10px;
+  display: block;
+  background: #000;
+}
+
+.media-loading {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 13px;
+}
+
+.media-caption {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.audio-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.audio-icon {
+  font-size: 18px;
+}
+
+.audio-wave {
+  flex: 1;
+  height: 44px;
+  color: var(--accent);
+}
+
+.audio-player {
+  width: 100%;
+  margin-top: 8px;
+  height: 34px;
+}
+
+/* ---- Modals / dialogs ------------------------------------------------------ */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(2px);
+}
+
+.dialog {
+  width: min(440px, calc(100vw - 48px));
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 14px;
+}
+
+.dialog-label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-faint);
+  margin-bottom: 6px;
+}
+
+.dialog-row {
+  display: flex;
+  gap: 8px;
+}
+
+.dialog-input {
+  flex: 1;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--text);
+  outline: none;
+  font-size: 13.5px;
+}
+
+.dialog-hint {
+  font-size: 12.5px;
+  color: var(--text-soft);
+  margin: 10px 0 0;
+  line-height: 1.5;
+}
+
+.btn.is-busy {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ---- Voice recorder -------------------------------------------------------- */
+.recorder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0 4px;
+}
+
+.recorder-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.recorder-time {
+  font-variant-numeric: tabular-nums;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.recorder-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--danger);
+  animation: stela-pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes stela-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.82);
+  }
 }

@@ -40,6 +40,10 @@ export const renameNote = (fileId: string, name: string) =>
 export const deleteNote = (fileId: string) => invoke<void>("delete_note", { fileId });
 export const pollChanges = () => invoke<ChangeResult>("poll_changes");
 
+export const uploadMedia = (name: string, mimeType: string, dataBase64: string) =>
+  invoke<DriveFile>("upload_media", { name, mimeType, dataBase64 });
+export const downloadMedia = (fileId: string) => invoke<string>("download_media", { fileId });
+
 /** Subscribe to the backend's OAuth completion event. */
 export async function onAuthResult(
   cb: (ok: boolean, error?: string) => void,

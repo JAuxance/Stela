@@ -1,14 +1,16 @@
+use base64::{engine::general_purpose::STANDARD, Engine as _};
 use tauri::{AppHandle, State};
 use tauri_plugin_store::StoreExt;
 
 use crate::commands::auth::get_valid_access_token;
-use crate::error::Result;
+use crate::error::{Error, Result};
 use crate::google::drive_api;
 use crate::google::models::{ChangeResult, DriveFile};
 use crate::state::AppState;
 
 const STORE_FILE: &str = "stela.json";
 const FOLDER_NAME: &str = "Stela Notes";
+const MEDIA_FOLDER: &str = "Médias";
 
 fn store_get(app: &AppHandle, key: &str) -> Option<String> {
     let store = app.store(STORE_FILE).ok()?;
@@ -101,6 +103,42 @@ pub async fn rename_note(
 pub async fn delete_note(state: State<'_, AppState>, file_id: String) -> Result<()> {
     let token = get_valid_access_token(state.inner()).await?;
     drive_api::delete_note(&state.client, &token, &file_id).await
+}
+
+async fn media_folder_id(app: &AppHandle, state: &AppState, token: &str) -> Result<String> {
+    if let Some(id) = store_get(app, "mediaFolderId") {
+        return Ok(id);
+    }
+    let notes = folder_id(app, state, token).await?;
+    let id = drive_api::ensure_subfolder(&state.client, token, &notes, MEDIA_FOLDER).await?;
+    store_put(app, "mediaFolderId", &id);
+    Ok(id)
+}
+
+/// Upload a media file (audio/video) to "Stela Notes/Médias". `data_base64` is the
+/// base64-encoded bytes from the webview. Returns the created Drive file (id, name…).
+#[tauri::command]
+pub async fn upload_media(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    name: String,
+    mime_type: String,
+    data_base64: String,
+) -> Result<DriveFile> {
+    let token = get_valid_access_token(state.inner()).await?;
+    let folder = media_folder_id(&app, state.inner(), &token).await?;
+    let bytes = STANDARD
+        .decode(data_base64.as_bytes())
+        .map_err(|e| Error::Drive(format!("invalid base64 media: {e}")))?;
+    drive_api::create_binary(&state.client, &token, &folder, &name, &mime_type, &bytes).await
+}
+
+/// Download a media file's bytes as base64 so the webview can build a blob URL.
+#[tauri::command]
+pub async fn download_media(state: State<'_, AppState>, file_id: String) -> Result<String> {
+    let token = get_valid_access_token(state.inner()).await?;
+    let bytes = drive_api::download_bytes(&state.client, &token, &file_id).await?;
+    Ok(STANDARD.encode(bytes))
 }
 
 /// Poll Drive for remote changes since the last stored page token so the UI can

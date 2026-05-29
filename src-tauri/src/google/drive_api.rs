@@ -201,6 +201,96 @@ pub async fn delete_note(client: &reqwest::Client, token: &str, file_id: &str) -
     Ok(())
 }
 
+/// Find (or create) a subfolder by name under `parent_id`. Used for "Médias".
+pub async fn ensure_subfolder(
+    client: &reqwest::Client,
+    token: &str,
+    parent_id: &str,
+    name: &str,
+) -> Result<String> {
+    let q = format!(
+        "mimeType = '{FOLDER_MIME}' and name = '{}' and '{parent_id}' in parents and trashed = false",
+        name.replace('\'', "\\'")
+    );
+    let resp = client
+        .get(FILES)
+        .bearer_auth(token)
+        .query(&[("q", q.as_str()), ("fields", "files(id)"), ("spaces", "drive")])
+        .send()
+        .await?;
+    let list: FileList = json(resp).await?;
+    if let Some(folder) = list.files.into_iter().next() {
+        return Ok(folder.id);
+    }
+
+    let body = serde_json::json!({ "name": name, "mimeType": FOLDER_MIME, "parents": [parent_id] });
+    let resp = client
+        .post(FILES)
+        .bearer_auth(token)
+        .query(&[("fields", "id")])
+        .json(&body)
+        .send()
+        .await?;
+    let folder: DriveFile = json(resp).await?;
+    Ok(folder.id)
+}
+
+/// Upload arbitrary binary (audio/video) via multipart/related.
+pub async fn create_binary(
+    client: &reqwest::Client,
+    token: &str,
+    parent_id: &str,
+    name: &str,
+    mime: &str,
+    bytes: &[u8],
+) -> Result<DriveFile> {
+    let boundary = rand_boundary();
+    let metadata = serde_json::json!({
+        "name": name,
+        "parents": [parent_id],
+        "mimeType": mime,
+        "appProperties": { "app": "stela", "kind": "media" }
+    });
+
+    let mut body: Vec<u8> = Vec::with_capacity(bytes.len() + 512);
+    body.extend_from_slice(
+        format!(
+            "--{boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n{metadata}\r\n--{boundary}\r\nContent-Type: {mime}\r\n\r\n"
+        )
+        .as_bytes(),
+    );
+    body.extend_from_slice(bytes);
+    body.extend_from_slice(format!("\r\n--{boundary}--").as_bytes());
+
+    let resp = client
+        .post(UPLOAD_FILES)
+        .bearer_auth(token)
+        .query(&[("uploadType", "multipart"), ("fields", FILE_FIELDS)])
+        .header(
+            "Content-Type",
+            format!("multipart/related; boundary={boundary}"),
+        )
+        .body(body)
+        .send()
+        .await?;
+    json(resp).await
+}
+
+/// Download a file's raw bytes (for media playback via a blob URL).
+pub async fn download_bytes(
+    client: &reqwest::Client,
+    token: &str,
+    file_id: &str,
+) -> Result<Vec<u8>> {
+    let resp = client
+        .get(format!("{FILES}/{file_id}"))
+        .bearer_auth(token)
+        .query(&[("alt", "media")])
+        .send()
+        .await?;
+    Ok(check(resp).await?.bytes().await?.to_vec())
+}
+
 pub async fn get_start_page_token(client: &reqwest::Client, token: &str) -> Result<String> {
     let resp = client
         .get(format!("{CHANGES}/startPageToken"))

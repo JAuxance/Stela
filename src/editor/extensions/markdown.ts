@@ -11,29 +11,159 @@ export function markdownExtension() {
   } as Record<string, unknown>);
 }
 
-type AnyEditor = Editor & {
-  getMarkdown?: () => string;
-  markdown?: { serialize?: (doc: unknown) => string };
-  storage?: { markdown?: { getMarkdown?: () => string } };
+type MarkdownManager = {
+  serialize?: (json: unknown) => string;
+  parse?: (md: string) => unknown;
 };
+type AnyEditor = Editor & { markdown?: MarkdownManager };
 
-/** Serialize the current document to Markdown, across @tiptap/markdown API shapes. */
+const setContent = (editor: Editor, content: unknown) =>
+  (editor.commands.setContent as unknown as (
+    content: unknown,
+    options: Record<string, unknown>,
+  ) => boolean)(content, { emitUpdate: false });
+
+/* ---------------------------------------------------------------------------
+ * Custom-node <-> Markdown bridge.
+ * @tiptap/markdown only knows standard nodes, so before serializing we "demote"
+ * our custom nodes (math, media) to plain text/links, and after parsing we
+ * "revive" those text patterns back into the rich nodes. This keeps the stored
+ * .md fully portable (standard `$...$`, links) and the round-trip lossless.
+ * ------------------------------------------------------------------------- */
+
+interface Mark {
+  type?: string;
+  attrs?: Record<string, unknown>;
+}
+interface JSONNode {
+  type?: string;
+  text?: string;
+  attrs?: Record<string, unknown>;
+  marks?: Mark[];
+  content?: JSONNode[];
+}
+
+// Inline math `$...$` (no surrounding spaces, single line).
+const INLINE_MATH = /\$(?!\s)([^$\n]+?)(?<!\s)\$/g;
+// Media is stored as a portable link to a reserved (non-resolving) host.
+const MEDIA_BASE = "https://stela.invalid";
+
+function mediaParagraph(label: string, path: string, params: URLSearchParams): JSONNode {
+  return {
+    type: "paragraph",
+    content: [
+      { type: "text", text: label, marks: [{ type: "link", attrs: { href: `${MEDIA_BASE}${path}?${params}` } }] },
+    ],
+  };
+}
+
+function demoteNode(node: JSONNode): JSONNode {
+  if (node.type === "mathInline") {
+    return { type: "text", text: `$${(node.attrs?.latex as string) ?? ""}$` };
+  }
+  if (node.type === "mathBlock") {
+    const latex = (node.attrs?.latex as string) ?? "";
+    return { type: "paragraph", content: [{ type: "text", text: `$$${latex}$$` }] };
+  }
+  if (node.type === "videoEmbed") {
+    const a = node.attrs ?? {};
+    const p = new URLSearchParams();
+    p.set("provider", String(a.provider ?? "url"));
+    if (a.fileId) p.set("fileId", String(a.fileId));
+    if (a.src && a.provider !== "drive") p.set("src", String(a.src));
+    if (a.mime) p.set("mime", String(a.mime));
+    p.set("name", String(a.name ?? "Vidéo"));
+    return mediaParagraph(`Vidéo : ${a.name ?? "Vidéo"}`, "/video", p);
+  }
+  if (node.type === "audioNote") {
+    const a = node.attrs ?? {};
+    const p = new URLSearchParams();
+    if (a.fileId) p.set("fileId", String(a.fileId));
+    if (a.mime) p.set("mime", String(a.mime));
+    p.set("name", String(a.name ?? "Note vocale"));
+    return mediaParagraph(`Note vocale : ${a.name ?? "Note vocale"}`, "/audio", p);
+  }
+  if (node.content) return { ...node, content: node.content.map(demoteNode) };
+  return node;
+}
+
+function reviveInlineText(node: JSONNode): JSONNode[] {
+  if (node.type !== "text" || !node.text || !node.text.includes("$")) return [node];
+  const out: JSONNode[] = [];
+  let last = 0;
+  for (const m of node.text.matchAll(INLINE_MATH)) {
+    const start = m.index ?? 0;
+    if (start > last) out.push({ ...node, text: node.text.slice(last, start) });
+    out.push({ type: "mathInline", attrs: { latex: m[1] } });
+    last = start + m[0].length;
+  }
+  if (out.length === 0) return [node];
+  if (last < node.text.length) out.push({ ...node, text: node.text.slice(last) });
+  return out;
+}
+
+function reviveNode(node: JSONNode): JSONNode {
+  if (node.type === "paragraph" && node.content && node.content.length === 1) {
+    const child = node.content[0];
+
+    // Standalone `$$...$$` paragraph -> block math.
+    const text = child?.text?.trim() ?? "";
+    const block = /^\$\$([\s\S]+?)\$\$$/.exec(text);
+    if (child?.type === "text" && block) {
+      return { type: "mathBlock", attrs: { latex: block[1].trim() } };
+    }
+
+    // Media link paragraph -> video / audio node.
+    const href = child?.marks?.find(
+      (m) => m.type === "link" && typeof m.attrs?.href === "string" && (m.attrs.href as string).startsWith(MEDIA_BASE),
+    )?.attrs?.href as string | undefined;
+    if (child?.type === "text" && href) {
+      const url = new URL(href);
+      const p = url.searchParams;
+      if (url.pathname === "/video") {
+        return {
+          type: "videoEmbed",
+          attrs: {
+            provider: p.get("provider") ?? "url",
+            src: p.get("src") ?? "",
+            fileId: p.get("fileId"),
+            name: p.get("name") ?? "Vidéo",
+            mime: p.get("mime") ?? "video/mp4",
+          },
+        };
+      }
+      if (url.pathname === "/audio") {
+        return {
+          type: "audioNote",
+          attrs: {
+            fileId: p.get("fileId"),
+            src: "",
+            name: p.get("name") ?? "Note vocale",
+            mime: p.get("mime") ?? "audio/webm",
+          },
+        };
+      }
+    }
+  }
+  if (node.content) {
+    const content = node.content.flatMap((child) =>
+      child.type === "text" ? reviveInlineText(child) : [reviveNode(child)],
+    );
+    return { ...node, content };
+  }
+  return node;
+}
+
+/** Serialize the current document to Markdown via @tiptap/markdown's manager. */
 export function getMarkdown(editor: Editor): string {
-  const ed = editor as AnyEditor;
-  if (typeof ed.getMarkdown === "function") return ed.getMarkdown();
-  if (ed.storage?.markdown?.getMarkdown) return ed.storage.markdown.getMarkdown();
-  if (ed.markdown?.serialize) return ed.markdown.serialize(editor.state.doc);
+  const md = (editor as AnyEditor).markdown;
+  if (md?.serialize) return md.serialize(demoteNode(editor.getJSON() as JSONNode));
   return editor.getText();
 }
 
 /** Load a Markdown string into the editor without emitting an update event. */
-export function setMarkdown(editor: Editor, md: string): void {
-  try {
-    (editor.commands.setContent as unknown as (
-      content: string,
-      options: Record<string, unknown>,
-    ) => boolean)(md, { contentType: "markdown", emitUpdate: false });
-  } catch {
-    editor.commands.setContent(md, { emitUpdate: false } as Record<string, unknown>);
-  }
+export function setMarkdown(editor: Editor, markdown: string): void {
+  const md = (editor as AnyEditor).markdown;
+  if (md?.parse) setContent(editor, reviveNode(md.parse(markdown) as JSONNode));
+  else setContent(editor, markdown);
 }

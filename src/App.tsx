@@ -64,6 +64,17 @@ export function App() {
             <Banner tone="info">Connexion à Google Drive… termine l'autorisation dans ton navigateur.</Banner>
           )}
 
+          {sync.status === "error" && (
+            <Banner tone="warn">
+              <span style={{ flex: 1, minWidth: 200, wordBreak: "break-word" }}>
+                {sync.lastError ?? "Erreur de synchronisation."}
+              </span>
+              <button className="btn" style={{ height: 30 }} onClick={sync.connect}>
+                Réessayer la connexion
+              </button>
+            </Banner>
+          )}
+
           {sync.status === "conflict" && (
             <Banner tone="warn">
               Cette note a été modifiée ailleurs.
@@ -102,6 +113,7 @@ export function App() {
                 initialMarkdown={sync.initialMarkdown}
                 editable={sync.editable}
                 onChange={handleChange}
+                canUpload={sync.connected}
               />
             </div>
           </div>

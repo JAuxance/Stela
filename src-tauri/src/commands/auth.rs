@@ -148,9 +148,44 @@ pub async fn start_google_auth(
 
     let redirect_uri = format!("http://127.0.0.1:{port}");
     let auth_url = oauth::build_auth_url(&client_id, &redirect_uri, SCOPE, &pkce.challenge, &csrf);
-    open::that(auth_url).map_err(|e| Error::OAuth(format!("could not open browser: {e}")))?;
+    open_in_browser(&auth_url)?;
 
     Ok(port)
+}
+
+/// Open a URL in the user's browser, with fallbacks that matter under WSL where
+/// the default `gio open` launcher fails — there we route to the Windows browser.
+fn open_in_browser(url: &str) -> Result<()> {
+    if open::that(url).is_ok() {
+        return Ok(());
+    }
+
+    let escaped = url.replace('\'', "''");
+    let attempts: [(&str, Vec<String>); 4] = [
+        ("wslview", vec![url.to_string()]),
+        (
+            "powershell.exe",
+            vec![
+                "-NoProfile".into(),
+                "-Command".into(),
+                format!("Start-Process '{escaped}'"),
+            ],
+        ),
+        ("explorer.exe", vec![url.to_string()]),
+        ("xdg-open", vec![url.to_string()]),
+    ];
+
+    for (cmd, args) in attempts {
+        if let Ok(status) = std::process::Command::new(cmd).args(&args).status() {
+            if status.success() {
+                return Ok(());
+            }
+        }
+    }
+
+    Err(Error::OAuth(format!(
+        "impossible d'ouvrir le navigateur automatiquement. Ouvre ce lien à la main :\n{url}"
+    )))
 }
 
 /// Return a valid access token, refreshing it via the stored refresh token when

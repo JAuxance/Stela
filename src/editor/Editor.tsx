@@ -5,6 +5,11 @@ import { buildExtensions, type SpellContextInfo } from "./extensions";
 import { getMarkdown, setMarkdown } from "./extensions/markdown";
 import { spellKey } from "./extensions/spellcheck";
 import { SuggestionMenu } from "../components/SuggestionMenu";
+import { Toolbar } from "../components/Toolbar";
+import { VideoDialog } from "../components/VideoDialog";
+import { AudioRecorder } from "../components/AudioRecorder";
+import { insertVideo } from "./extensions/video";
+import { insertAudio } from "./extensions/audio";
 import { addWord, suggest } from "../spellcheck/proofreader";
 import { defaultLang } from "../lib/language";
 
@@ -20,6 +25,8 @@ export interface EditorProps {
   editable: boolean;
   onChange: (markdown: string) => void;
   onEditorReady?: (editor: TiptapEditor) => void;
+  /** Whether media (audio/video files) can be uploaded to Drive (i.e. connected). */
+  canUpload: boolean;
 }
 
 export function Editor({
@@ -28,8 +35,11 @@ export function Editor({
   editable,
   onChange,
   onEditorReady,
+  canUpload,
 }: EditorProps) {
   const [menu, setMenu] = useState<MenuState | null>(null);
+  const [videoOpen, setVideoOpen] = useState(false);
+  const [recOpen, setRecOpen] = useState(false);
   const lang = defaultLang();
 
   const handleContextMenu = useCallback((info: SpellContextInfo) => {
@@ -92,7 +102,24 @@ export function Editor({
 
   return (
     <>
+      <Toolbar
+        editor={editor}
+        onInsertVideo={() => setVideoOpen(true)}
+        onRecordAudio={canUpload ? () => setRecOpen(true) : undefined}
+      />
       <EditorContent editor={editor} />
+
+      {videoOpen && editor && (
+        <VideoDialog
+          canUpload={canUpload}
+          onInsert={(attrs) => insertVideo(editor, attrs)}
+          onClose={() => setVideoOpen(false)}
+        />
+      )}
+      {recOpen && editor && (
+        <AudioRecorder onInsert={(attrs) => insertAudio(editor, attrs)} onClose={() => setRecOpen(false)} />
+      )}
+
       {menu && (
         <SuggestionMenu
           x={menu.x}

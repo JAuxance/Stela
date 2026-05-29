@@ -15,16 +15,28 @@ import type { EditorView } from "@tiptap/pm/view";
  */
 class CaretView {
   private caret: HTMLDivElement;
+  private host: HTMLElement;
   private raf = 0;
+  private visible = false;
   private readonly onFocusChange = () => this.schedule();
 
   constructor(private view: EditorView) {
+    // Mount the caret in the editor's WRAPPER (outside the contenteditable) so
+    // ProseMirror never reconciles it away on edits, and it isn't itself editable.
+    this.host = (view.dom.parentElement as HTMLElement | null) ?? view.dom;
+    if (getComputedStyle(this.host).position === "static") {
+      this.host.style.position = "relative";
+    }
+
     this.caret = document.createElement("div");
     this.caret.className = "stela-caret";
+    this.caret.contentEditable = "false";
     this.caret.setAttribute("aria-hidden", "true");
-    view.dom.appendChild(this.caret);
+    this.host.appendChild(this.caret);
+
     view.dom.addEventListener("focus", this.onFocusChange);
     view.dom.addEventListener("blur", this.onFocusChange);
+    document.addEventListener("selectionchange", this.onFocusChange);
     this.schedule();
   }
 
@@ -40,6 +52,7 @@ class CaretView {
   private hide() {
     this.caret.style.opacity = "0";
     this.caret.classList.remove("is-blinking");
+    this.visible = false;
   }
 
   private draw() {
@@ -62,25 +75,41 @@ class CaretView {
       return;
     }
 
-    const rect = view.dom.getBoundingClientRect();
+    const rect = this.host.getBoundingClientRect();
     const left = coords.left - rect.left;
     const top = coords.top - rect.top;
     const height = Math.max(coords.bottom - coords.top, 14);
 
+    // When (re)appearing, jump to the position without animating so it doesn't
+    // glide in from the corner; subsequent moves glide via the CSS transition.
+    const appearing = !this.visible;
+    if (appearing) this.caret.style.transition = "none";
+
     this.caret.style.height = `${height}px`;
-    this.caret.style.transform = `translate(${left}px, ${top}px)`;
+    this.caret.style.transform = `translate3d(${left}px, ${top}px, 0)`;
     this.caret.style.opacity = "1";
 
-    // Restart the blink animation on every move (VS Code / CodeMirror behavior).
+    if (appearing) {
+      void this.caret.offsetWidth; // commit the no-transition jump
+      this.caret.style.transition = ""; // restore the glide from the stylesheet
+      this.visible = true;
+    }
+
+    // Restart the soft blink only after the cursor settles, so movement reads as
+    // a continuous glide rather than a flicker.
     this.caret.classList.remove("is-blinking");
-    void this.caret.offsetWidth;
-    this.caret.classList.add("is-blinking");
+    if (this.blinkTimer) clearTimeout(this.blinkTimer);
+    this.blinkTimer = setTimeout(() => this.caret.classList.add("is-blinking"), 180);
   }
+
+  private blinkTimer: ReturnType<typeof setTimeout> | null = null;
 
   destroy() {
     cancelAnimationFrame(this.raf);
+    if (this.blinkTimer) clearTimeout(this.blinkTimer);
     this.view.dom.removeEventListener("focus", this.onFocusChange);
     this.view.dom.removeEventListener("blur", this.onFocusChange);
+    document.removeEventListener("selectionchange", this.onFocusChange);
     this.caret.remove();
   }
 }

@@ -21,15 +21,12 @@
         "minHeight": 480,
         "resizable": true,
         "decorations": false,
-        "transparent": true,
-        "shadow": true,
-        "windowEffects": {
-          "effects": ["mica"]
-        }
+        "transparent": false,
+        "shadow": true
       }
     ],
     "security": {
-      "csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self' data:; worker-src 'self' blob:; connect-src 'self' ipc: http://ipc.localhost https://oauth2.googleapis.com https://www.googleapis.com"
+      "csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost data: blob: https:; media-src 'self' blob: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self' data:; worker-src 'self' blob:; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; connect-src 'self' ipc: http://ipc.localhost blob: https://oauth2.googleapis.com https://www.googleapis.com"
     }
   },
   "bundle": {

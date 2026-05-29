@@ -2,7 +2,11 @@ import StarterKit from "@tiptap/starter-kit";
 import { markdownExtension } from "./markdown";
 import { taskExtensions } from "./tasks";
 import { SmoothCaret } from "./smoothCaret";
+import { TypingInk } from "./typingInk";
 import { Spellcheck, type SpellContextInfo } from "./spellcheck";
+import { MathInline, MathBlock } from "./math";
+import { VideoEmbed } from "./video";
+import { AudioNote } from "./audio";
 import type { Lang } from "../../lib/language";
 
 export interface BuildOptions {
@@ -20,8 +24,13 @@ export function buildExtensions(options: BuildOptions) {
   return [
     StarterKit,
     ...taskExtensions(),
+    MathInline,
+    MathBlock,
+    VideoEmbed,
+    AudioNote,
     markdownExtension(),
     SmoothCaret,
+    TypingInk,
     Spellcheck.configure({
       defaultLang: options.defaultLang,
       enabled: true,
